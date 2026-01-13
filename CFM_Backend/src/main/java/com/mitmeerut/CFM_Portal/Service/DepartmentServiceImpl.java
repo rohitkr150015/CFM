@@ -76,8 +76,20 @@ public class DepartmentServiceImpl implements DepartmentService {
         Department dept = departmentRepo.findById(departmentId)
                 .orElseThrow(() -> new RuntimeException("Department not found"));
 
-
+        // Clear the HOD reference from department
+        Teacher hod = dept.getHod();
+        if (hod != null) {
+            hod.setDepartment(null);
+            teacherRepo.save(hod);
+        }
         dept.setHod(null);
+
+        // Clear department reference from all teachers in this department
+        List<Teacher> teachers = teacherRepo.findByDepartmentId(departmentId);
+        for (Teacher teacher : teachers) {
+            teacher.setDepartment(null);
+            teacherRepo.save(teacher);
+        }
 
         departmentRepo.delete(dept);
     }

@@ -3,7 +3,6 @@ package com.mitmeerut.CFM_Portal.Model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,6 +20,8 @@ public class CourseFile {
 
     private String academicYear;
 
+    private String section;
+
     @ManyToOne
     @JoinColumn(name = "created_by")
     private Teacher createdBy;
@@ -30,4 +31,3 @@ public class CourseFile {
     private LocalDateTime createdAt;
 
 }
-

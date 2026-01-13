@@ -1,13 +1,6 @@
-nohup: ignoring input
 
 > rest-express@1.0.0 dev
 > cross-env NODE_ENV=development tsx server/index.ts
 
-3:51:09 AM [express] serving on port 5000
+5:44:29 PM [express] serving on port 5000
 [baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
-3:53:52 AM [vite] (client) hmr update /src/pages/admin/AdminUsers.tsx, /src/index.css
-4:04:44 AM [vite] (client) hmr update /src/pages/dashboard/Courses.tsx, /src/index.css
-4:12:35 AM [vite] (client) hmr update /src/pages/admin/AdminUsers.tsx, /src/index.css
-4:23:04 AM [vite] (client) hmr update /src/pages/hod/HodTemplateBuilder.tsx, /src/index.css
-4:23:06 AM [vite] (client) hmr update /src/pages/hod/HodTemplateBuilder.tsx, /src/index.css
-4:23:21 AM [vite] (client) hmr update /src/pages/hod/HodTemplateBuilder.tsx, /src/index.css

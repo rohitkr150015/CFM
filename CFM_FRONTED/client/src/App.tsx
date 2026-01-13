@@ -33,7 +33,7 @@ import ViewCourseFilePage from "@/pages/dashboard/ViewCourseFile";
 
 /* ===================== HOD ===================== */
 import HodDashboardPage from "@/pages/hod/HodDashboard";
-import AssignCoursesPage from "@/pages/hod/Assign-Course";
+import AssignCoursesPage from "@/pages/hod/HodAssignCourse.tsx";
 import DepartmentFacultyPage from "@/pages/hod/DepartmentFaculty";
 import DepartmentManagementPage from "./pages/hod/AddCoursePage";
 import HodApprovalsPage from "@/pages/hod/HodApprovals";

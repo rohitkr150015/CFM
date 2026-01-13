@@ -1,99 +1,193 @@
 import { useEffect, useState } from "react";
-import { authFetch } from "@/utils/authFetch";
-import {
-  Table, TableHeader, TableRow,
-  TableHead, TableBody, TableCell,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog, DialogContent, DialogHeader,
-  DialogTitle, DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Select, SelectTrigger, SelectValue,
-  SelectContent, SelectItem,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Trash2, Edit2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { authFetch } from "@/utils/authFetch";
 
-interface Teacher { id: number; name: string }
-interface Course { id: number; title: string; code: string }
-interface Assignment {
+/* ================= TYPES ================= */
+
+interface Teacher {
   id: number;
-  teacher: Teacher;
-  course: Course;
-  academic_year: string;
-  section?: string;
+  name: string;
 }
 
-export default function AssignCoursePage() {
+interface Course {
+  id: number;
+  code: string;
+  title: string;
+}
+
+/* ================= COMPONENT ================= */
+
+export default function HodAssignCourse() {
   const { toast } = useToast();
 
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<Assignment | null>(null);
 
-  const [form, setForm] = useState({
-    teacherId: "",
-    courseId: "",
-    academic_year: "",
-    section: "",
-  });
+  const [teacherId, setTeacherId] = useState("");
+  const [courseId, setCourseId] = useState("");
+  const [academicYear, setAcademicYear] = useState("");
+  const [section, setSection] = useState("");
+
+  const [loading, setLoading] = useState(false);
+
+  /* ================= LOAD DATA ================= */
 
   useEffect(() => {
-    Promise.all([
-      authFetch("/api/hod/teachers").then(r => r.json()),
-      authFetch("/api/hod/courses").then(r => r.json()),
-      authFetch("/api/hod/course-assignments").then(r => r.json()),
-    ])
-      .then(([t, c, a]) => {
-        setTeachers(t);
-        setCourses(c);
-        setAssignments(a);
-      })
-      .catch(() =>
-        toast({
-          title: "Error",
-          description: "Load failed",
-          variant: "destructive",
-        })
-      );
+    loadTeachers();
+    loadCourses();
   }, []);
 
-  const saveAssignment = async () => {
-    const url = editing
-      ? `/api/hod/course-assign/${editing.id}`
-      : "/api/hod/course-assign";
-
-    const method = editing ? "PUT" : "POST";
-
-    const res = await authFetch(url, {
-      method,
-      body: JSON.stringify(form),
-    });
-
-    const saved = await res.json();
-
-    setAssignments(prev =>
-      editing
-        ? prev.map(a => (a.id === saved.id ? saved : a))
-        : [...prev, saved]
-    );
-
-    toast({ title: "Saved successfully" });
-    setOpen(false);
-    setEditing(null);
+  const loadTeachers = async () => {
+    try {
+      const res = await authFetch("/api/hod/faculty");
+      if (!res.ok) throw new Error();
+      setTeachers(await res.json());
+    } catch {
+      toast({
+        title: "Error",
+        description: "Unable to load teachers",
+        variant: "destructive",
+      });
+    }
   };
 
-  const deleteAssignment = async (id: number) => {
-    await authFetch(`/api/hod/course-assign/${id}`, { method: "DELETE" });
-    setAssignments(prev => prev.filter(a => a.id !== id));
-    toast({ title: "Deleted" });
+  const loadCourses = async () => {
+    try {
+      const res = await authFetch("/api/hod/courses");
+      if (!res.ok) throw new Error();
+      setCourses(await res.json());
+    } catch {
+      toast({
+        title: "Error",
+        description: "Unable to load courses",
+        variant: "destructive",
+      });
+    }
   };
 
-  /* UI same as aapka (shortened for clarity) */
-  return <div>✔️ Clean & Secure Assign Course Page</div>;
+  /* ================= ASSIGN ================= */
+
+  const assignCourse = async () => {
+    if (!teacherId || !courseId || !academicYear || !section) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await authFetch("/api/hod/assign-course", {
+        method: "POST",
+        body: JSON.stringify({
+          teacherId: Number(teacherId),
+          courseId: Number(courseId),
+          academicYear,
+          section,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Assignment failed");
+      }
+
+      toast({
+        title: "Success",
+        description: "Course assigned successfully",
+      });
+
+      // reset form
+      setTeacherId("");
+      setCourseId("");
+      setAcademicYear("");
+      setSection("");
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Unable to assign course",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= UI ================= */
+
+  return (
+      <div className="max-w-xl mx-auto mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Assign Course to Faculty</CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {/* TEACHER */}
+            <Select value={teacherId} onValueChange={setTeacherId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Teacher" />
+              </SelectTrigger>
+              <SelectContent>
+                {teachers.map((t) => (
+                    <SelectItem key={t.id} value={String(t.id)}>
+                      {t.name}
+                    </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* COURSE */}
+            <Select value={courseId} onValueChange={setCourseId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Course" />
+              </SelectTrigger>
+              <SelectContent>
+                {courses.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>
+                      {c.code} — {c.title}
+                    </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* ACADEMIC YEAR */}
+            <Input
+                placeholder="Academic Year (e.g. 2024-25)"
+                value={academicYear}
+                onChange={(e) => setAcademicYear(e.target.value)}
+            />
+
+            {/* SECTION */}
+            <Input
+                placeholder="Section (e.g. A)"
+                value={section}
+                onChange={(e) => setSection(e.target.value)}
+            />
+
+            {/* BUTTON */}
+            <Button
+                className="w-full"
+                onClick={assignCourse}
+                disabled={loading}
+            >
+              {loading ? "Assigning..." : "Assign Course"}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+  );
 }

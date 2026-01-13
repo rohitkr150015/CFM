@@ -8,6 +8,9 @@ import java.util.Optional;
 
 public interface CourseFileService {
 
-    CourseFile createCourseFile(Long courseId, CustomUserDetails user);
+    CourseFile createCourseFile(com.mitmeerut.CFM_Portal.dto.CreateCourseFileRequest request, CustomUserDetails user);
 
+    List<CourseFile> getCourseFilesByTeacher(Long teacherId);
+
+    void deleteCourseFile(Long id);
 }

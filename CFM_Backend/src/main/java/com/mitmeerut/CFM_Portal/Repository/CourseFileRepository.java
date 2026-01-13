@@ -8,4 +8,5 @@ import com.mitmeerut.CFM_Portal.Model.CourseFile;
 @Repository
 public interface CourseFileRepository extends JpaRepository<CourseFile, Long> {
 
+    List<CourseFile> findByCreatedById(Long teacherId);
 }

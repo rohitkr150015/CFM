@@ -16,4 +16,13 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             WHERE p.department.id=:departmentId
             """)
     List<Course> findByDepartmentId(Long departmentId);
+
+
+    @Query("""
+        SELECT p.department.id
+        FROM Program p
+        WHERE p.id = :programId
+    """)
+    Long findDepartmentIdByProgramId(@Param("programId") Long programId);
 }
+
