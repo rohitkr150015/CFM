@@ -19,14 +19,14 @@ import {
     ArrowLeft,
     FileText,
     XCircle,
-    Send,
+    CheckCircle,
     Download,
     FolderOpen,
-    File,
     Eye,
     ChevronDown,
     ChevronRight,
     RefreshCw,
+    RotateCcw,
 } from "lucide-react";
 
 /* =======================
@@ -64,7 +64,7 @@ interface HeadingNode {
    COMPONENT
 ======================= */
 
-export default function SubjectHeadCourseReviewPage() {
+export default function HodCourseReviewPage() {
     const { courseFileId } = useParams<{ courseFileId: string }>();
     const navigate = useNavigate();
     const { toast } = useToast();
@@ -75,7 +75,7 @@ export default function SubjectHeadCourseReviewPage() {
     const [expandedHeadings, setExpandedHeadings] = useState<Set<number>>(new Set());
 
     const [showApproveDialog, setShowApproveDialog] = useState(false);
-    const [showRejectDialog, setShowRejectDialog] = useState(false);
+    const [showReturnDialog, setShowReturnDialog] = useState(false);
     const [comment, setComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
 
@@ -143,30 +143,30 @@ export default function SubjectHeadCourseReviewPage() {
        ACTIONS
     ======================= */
 
-    const handleForward = async () => {
+    const handleApprove = async () => {
         if (!courseFileId) return;
         setSubmitting(true);
 
         try {
-            const res = await authFetch(`/api/subject-head/approvals/${courseFileId}/approve`, {
+            const res = await authFetch(`/api/hod/approvals/${courseFileId}/approve`, {
                 method: "POST",
-                body: JSON.stringify({ comment: comment || "Forwarded to HOD for final approval" }),
+                body: JSON.stringify({ comment: comment || "Final approval granted" }),
             });
 
             if (res.ok) {
                 toast({
                     title: "Success",
-                    description: "Course file forwarded to HOD for approval",
+                    description: "Course file has been approved",
                 });
-                navigate("/subject-head/reviews");
+                navigate("/hod/approvals");
             } else {
                 const error = await res.json();
-                throw new Error(error.error || "Failed to forward");
+                throw new Error(error.error || "Failed to approve");
             }
         } catch (error: any) {
             toast({
                 title: "Error",
-                description: error.message || "Failed to forward course file",
+                description: error.message || "Failed to approve course file",
                 variant: "destructive",
             });
         } finally {
@@ -175,11 +175,11 @@ export default function SubjectHeadCourseReviewPage() {
         }
     };
 
-    const handleReject = async () => {
+    const handleReturn = async () => {
         if (!courseFileId || !comment.trim()) {
             toast({
                 title: "Required",
-                description: "Please provide a reason for rejection",
+                description: "Please provide a reason for returning",
                 variant: "destructive",
             });
             return;
@@ -188,7 +188,7 @@ export default function SubjectHeadCourseReviewPage() {
         setSubmitting(true);
 
         try {
-            const res = await authFetch(`/api/subject-head/approvals/${courseFileId}/return`, {
+            const res = await authFetch(`/api/hod/approvals/${courseFileId}/return`, {
                 method: "POST",
                 body: JSON.stringify({ comment }),
             });
@@ -198,7 +198,7 @@ export default function SubjectHeadCourseReviewPage() {
                     title: "Returned",
                     description: "Course file has been returned to teacher with feedback",
                 });
-                navigate("/subject-head/reviews");
+                navigate("/hod/approvals");
             } else {
                 const error = await res.json();
                 throw new Error(error.error || "Failed to return");
@@ -211,7 +211,7 @@ export default function SubjectHeadCourseReviewPage() {
             });
         } finally {
             setSubmitting(false);
-            setShowRejectDialog(false);
+            setShowReturnDialog(false);
         }
     };
 
@@ -363,7 +363,7 @@ export default function SubjectHeadCourseReviewPage() {
         );
     }
 
-    const canTakeAction = courseFile?.status === "SUBMITTED";
+    const canTakeAction = courseFile?.status === "UNDER_REVIEW_HOD";
 
     return (
         <div className="space-y-6">
@@ -385,18 +385,18 @@ export default function SubjectHeadCourseReviewPage() {
                     <div className="flex gap-2">
                         <Button
                             variant="outline"
-                            className="text-red-600 border-red-200 hover:bg-red-50"
-                            onClick={() => setShowRejectDialog(true)}
+                            className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                            onClick={() => setShowReturnDialog(true)}
                         >
-                            <XCircle className="h-4 w-4 mr-2" />
+                            <RotateCcw className="h-4 w-4 mr-2" />
                             Return
                         </Button>
                         <Button
                             className="bg-green-600 hover:bg-green-700"
                             onClick={() => setShowApproveDialog(true)}
                         >
-                            <Send className="h-4 w-4 mr-2" />
-                            Forward to HOD
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Approve
                         </Button>
                     </div>
                 )}
@@ -437,7 +437,7 @@ export default function SubjectHeadCourseReviewPage() {
                             <Badge
                                 variant="outline"
                                 className={
-                                    courseFile?.status === "SUBMITTED" ? "bg-yellow-100 text-yellow-700" :
+                                    courseFile?.status === "UNDER_REVIEW_HOD" ? "bg-blue-100 text-blue-700" :
                                         courseFile?.status === "APPROVED" ? "bg-green-100 text-green-700" :
                                             "bg-gray-100"
                                 }
@@ -471,25 +471,27 @@ export default function SubjectHeadCourseReviewPage() {
                 </CardContent>
             </Card>
 
-            {/* FORWARD DIALOG */}
+            {/* APPROVE DIALOG */}
             <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
-                            <Send className="h-5 w-5 text-green-600" />
-                            Forward to HOD
+                            <CheckCircle className="h-5 w-5 text-green-600" />
+                            Approve Course File
                         </DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
-                        <p className="text-sm text-muted-foreground">
-                            This will forward the course file to the HOD for final approval.
-                        </p>
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <p className="text-sm text-green-800">
+                                This will grant final approval to this course file. The teacher will be notified.
+                            </p>
+                        </div>
                         <div>
                             <Label>Comments (Optional)</Label>
                             <Textarea
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
-                                placeholder="Add any comments for the HOD..."
+                                placeholder="Add any comments..."
                                 rows={3}
                             />
                         </div>
@@ -500,18 +502,18 @@ export default function SubjectHeadCourseReviewPage() {
                         </Button>
                         <Button
                             className="bg-green-600 hover:bg-green-700"
-                            onClick={handleForward}
+                            onClick={handleApprove}
                             disabled={submitting}
                         >
                             {submitting ? (
                                 <>
                                     <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                                    Forwarding...
+                                    Approving...
                                 </>
                             ) : (
                                 <>
-                                    <Send className="h-4 w-4 mr-2" />
-                                    Forward to HOD
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    Approve
                                 </>
                             )}
                         </Button>
@@ -519,12 +521,12 @@ export default function SubjectHeadCourseReviewPage() {
                 </DialogContent>
             </Dialog>
 
-            {/* REJECT DIALOG */}
-            <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+            {/* RETURN DIALOG */}
+            <Dialog open={showReturnDialog} onOpenChange={setShowReturnDialog}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
-                            <XCircle className="h-5 w-5 text-red-600" />
+                            <XCircle className="h-5 w-5 text-orange-600" />
                             Return to Teacher
                         </DialogTitle>
                     </DialogHeader>
@@ -543,12 +545,13 @@ export default function SubjectHeadCourseReviewPage() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
+                        <Button variant="outline" onClick={() => setShowReturnDialog(false)}>
                             Cancel
                         </Button>
                         <Button
-                            variant="destructive"
-                            onClick={handleReject}
+                            variant="outline"
+                            className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                            onClick={handleReturn}
                             disabled={submitting || !comment.trim()}
                         >
                             {submitting ? "Returning..." : "Return to Teacher"}

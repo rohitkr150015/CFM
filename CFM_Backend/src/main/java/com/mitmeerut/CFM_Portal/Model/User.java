@@ -40,13 +40,16 @@ public class User {
     private Teacher teacher;
 
     @Column(name = "is_active")
-    private Boolean isActive = false;   // default: inactive (needs approval)
+    private Boolean isActive = false; // default: inactive (needs approval)
 
     @Column(name = "last_login")
     private LocalDateTime lastLogin = LocalDateTime.now();
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "profile_image_url", length = 500)
+    private String profileImageUrl;
 
     // ---------------- GETTERS / SETTERS ----------------
 

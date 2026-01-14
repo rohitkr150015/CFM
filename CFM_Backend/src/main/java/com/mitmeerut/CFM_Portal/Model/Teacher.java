@@ -34,10 +34,13 @@ public class Teacher {
     private String contactNumber;
 
     @Column(name = "is_active")
-    private Boolean isActive = false;   // signup se false, approval ke baad true
+    private Boolean isActive = false; // signup se false, approval ke baad true
 
     @Column(name = "joined_on")
     private LocalDate joinedOn;
+
+    @Column(name = "profile_image_url", length = 500)
+    private String profileImageUrl;
 
     @Column(name = "created_at", updatable = false)
     private LocalDate createdAt = LocalDate.now();
@@ -114,5 +117,13 @@ public class Teacher {
 
     public LocalDate getCreatedAt() {
         return createdAt;
+    }
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 }

@@ -52,6 +52,16 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                                                 .requestMatchers("/api/hod/courses/**").hasAnyRole("HOD", "TEACHER")
                                                 .requestMatchers("/api/hod/**").hasRole("HOD")
+                                                .requestMatchers("/api/subject-head/**").hasRole("SUBJECTHEAD")
+                                                .requestMatchers("/api/review/**").hasAnyRole("HOD", "SUBJECTHEAD")
+                                                .requestMatchers("/api/comments/**")
+                                                .hasAnyRole("TEACHER", "HOD", "SUBJECTHEAD")
+                                                .requestMatchers("/api/profile/**").authenticated()
+                                                .requestMatchers("/api/notifications/**").authenticated()
+                                                .requestMatchers("/api/teacher/documents/view/**")
+                                                .hasAnyRole("TEACHER", "HOD", "SUBJECTHEAD")
+                                                .requestMatchers("/api/teacher/documents/download/**")
+                                                .hasAnyRole("TEACHER", "HOD", "SUBJECTHEAD")
                                                 .requestMatchers("/api/teacher/**").hasRole("TEACHER")
 
                                                 .anyRequest().authenticated());

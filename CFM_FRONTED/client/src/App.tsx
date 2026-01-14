@@ -6,6 +6,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 
 import { queryClient } from "./lib/queryClient";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 /* ===================== AUTH PAGES ===================== */
@@ -37,8 +38,11 @@ import AssignCoursesPage from "@/pages/hod/HodAssignCourse.tsx";
 import DepartmentFacultyPage from "@/pages/hod/DepartmentFaculty";
 import DepartmentManagementPage from "./pages/hod/AddCoursePage";
 import HodApprovalsPage from "@/pages/hod/HodApprovals";
+import HodCourseReviewPage from "@/pages/hod/HodCourseReview";
 import HodTeachersPage from "@/pages/hod/HodTeachers";
 import HodTemplateBuilderPage from "@/pages/hod/HodTemplateBuilder";
+import HodCommentsPage from "@/pages/hod/HodComments";
+import HodSettingsPage from "@/pages/hod/HodSettings";
 import CalendarPage from "@/pages/common/Calendar";
 
 /* ===================== ADMIN ===================== */
@@ -57,6 +61,10 @@ import AdminSettingsPage from "@/pages/admin/AdminSettings";
 /* ===================== SUBJECT HEAD ===================== */
 import SubjectHeadDashboardPage from "@/pages/subjectHead/SubjectHeadDashboard";
 import SubjectHeadCourseReviewPage from "@/pages/subjectHead/SubjectHeadCourseReview";
+import SubjectHeadSubjectsPage from "@/pages/subjectHead/SubjectHeadSubjects";
+import SubjectHeadReviewsPage from "@/pages/subjectHead/SubjectHeadReviews";
+import SubjectHeadCommentsPage from "@/pages/subjectHead/SubjectHeadComments";
+import SubjectHeadSettingsPage from "@/pages/subjectHead/SubjectHeadSettings";
 
 /* ===================== FALLBACK ===================== */
 import NotFound from "@/pages/not-found";
@@ -105,11 +113,14 @@ function Router() {
         <Route path="dashboard" element={<HodDashboardPage />} />
         <Route path="overview" element={<HodDashboardPage />} />
         <Route path="approvals" element={<HodApprovalsPage />} />
+        <Route path="review/:courseFileId" element={<HodCourseReviewPage />} />
         <Route path="courses" element={<AssignCoursesPage />} />
         <Route path="department-faculty" element={<DepartmentFacultyPage />} />
         <Route path="department-management" element={<DepartmentManagementPage />} />
         <Route path="teachers" element={<HodTeachersPage />} />
         <Route path="templates" element={<HodTemplateBuilderPage />} />
+        <Route path="comments" element={<HodCommentsPage />} />
+        <Route path="settings" element={<HodSettingsPage />} />
         <Route path="calendar" element={<CalendarPage />} />
       </Route>
 
@@ -124,9 +135,13 @@ function Router() {
       >
         <Route index element={<SubjectHeadDashboardPage />} />
         <Route path="dashboard" element={<SubjectHeadDashboardPage />} />
+        <Route path="subjects" element={<SubjectHeadSubjectsPage />} />
+        <Route path="reviews" element={<SubjectHeadReviewsPage />} />
+        <Route path="comments" element={<SubjectHeadCommentsPage />} />
+        <Route path="settings" element={<SubjectHeadSettingsPage />} />
         <Route path="review/:courseFileId" element={<SubjectHeadCourseReviewPage />} />
-        <Route path="courses" element={<SubjectHeadDashboardPage />} />
-        <Route path="history" element={<SubjectHeadDashboardPage />} />
+        <Route path="courses" element={<SubjectHeadSubjectsPage />} />
+        <Route path="history" element={<SubjectHeadReviewsPage />} />
         <Route path="reports" element={<SubjectHeadDashboardPage />} />
       </Route>
 
@@ -169,14 +184,16 @@ function Router() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <ErrorBoundary>
-            <Router />
-          </ErrorBoundary>
-        </TooltipProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <ErrorBoundary>
+              <Router />
+            </ErrorBoundary>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

@@ -201,6 +201,7 @@ export const hodSidebarItems = [
   { icon: FileText, label: "Assign-Course", href: "/hod/courses" },
   { icon: FileText, label: "Create Template", href: "/hod/templates" },
   { icon: Shield, label: "Approve Files", href: "/hod/approvals" },
+  { icon: MessageSquare, label: "Comments", href: "/hod/comments" },
   { icon: User, label: "Faculty Performance", href: "/hod/teachers" },
   { icon: Calendar, label: "Dept. Calendar", href: "/hod/calendar" },
 ];

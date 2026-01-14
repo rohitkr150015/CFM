@@ -27,6 +27,10 @@ public class CustomUserDetails implements UserDetails {
         return user.getTeacher();
     }
 
+    public User getUser() {
+        return user;
+    }
+
     public Long getDepartmentId() {
         if (user.getTeacher() == null || user.getTeacher().getDepartment() == null) {
             return null;
@@ -37,14 +41,36 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public List<SimpleGrantedAuthority> getAuthorities() {
         return List.of(
-                new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
-        );
+                new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
     }
 
-    @Override public String getPassword() { return user.getPasswordHash(); }
-    @Override public String getUsername() { return user.getEmail(); }
-    @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return true; }
-    @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled() { return Boolean.TRUE.equals(user.getIsActive()); }
+    @Override
+    public String getPassword() {
+        return user.getPasswordHash();
+    }
+
+    @Override
+    public String getUsername() {
+        return user.getEmail();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return Boolean.TRUE.equals(user.getIsActive());
+    }
 }

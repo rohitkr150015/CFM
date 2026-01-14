@@ -4,8 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { CourseStructureTree, TreeNode } from "@/components/CourseStructureTree";
-import { Download, Save, HelpCircle, ArrowLeft, Upload, RefreshCw } from "lucide-react";
+import { Download, Save, HelpCircle, ArrowLeft, Upload, RefreshCw, Send, AlertCircle } from "lucide-react";
 import { authFetch } from "@/utils/authFetch";
 import { useToast } from "@/hooks/use-toast";
 
@@ -91,6 +99,9 @@ export default function CourseStructurePage() {
   const [courseFileId, setCourseFileId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [courseFileStatus, setCourseFileStatus] = useState<string>("DRAFT");
+  const [submitting, setSubmitting] = useState(false);
+  const [showSubmitDialog, setShowSubmitDialog] = useState(false);
 
   const loadStructure = async () => {
     if (!courseId) return;
@@ -116,6 +127,18 @@ export default function CourseStructurePage() {
       setTemplateName(tplName);
       setCourseCode(cCode);
       setCourseFileId(Number(courseId));
+
+      // Fetch status from backend
+      try {
+        const statusRes = await authFetch(`/api/teacher/course-files/${courseId}/status`);
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          setCourseFileStatus(statusData.status || "DRAFT");
+        }
+      } catch (e) {
+        // Default to DRAFT if status fetch fails
+        setCourseFileStatus("DRAFT");
+      }
 
       // Fetch tree structure from backend
       const res = await authFetch(`/api/teacher/headings/course-file/${courseId}/tree`);
@@ -156,6 +179,53 @@ export default function CourseStructurePage() {
     setStructure(newStructure);
   };
 
+  const handleSubmit = async () => {
+    if (!courseFileId) return;
+
+    setSubmitting(true);
+    try {
+      const res = await authFetch(`/api/teacher/course-files/${courseFileId}/submit`, {
+        method: 'POST'
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setCourseFileStatus(data.status);
+        toast({
+          title: "Success",
+          description: "Course file submitted for review",
+        });
+        setShowSubmitDialog(false);
+      } else {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to submit");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit course file",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const canSubmit = courseFileStatus === "DRAFT" || courseFileStatus === "RETURNED_BY_SUBJECT_HEAD" || courseFileStatus === "RETURNED_BY_HOD";
+
+  const getStatusBadge = () => {
+    const statusConfig: Record<string, { className: string; label: string }> = {
+      DRAFT: { className: "bg-gray-100 text-gray-700", label: "Draft" },
+      SUBMITTED: { className: "bg-yellow-100 text-yellow-700", label: "Submitted" },
+      UNDER_REVIEW_HOD: { className: "bg-blue-100 text-blue-700", label: "Under HOD Review" },
+      RETURNED_BY_SUBJECT_HEAD: { className: "bg-orange-100 text-orange-700", label: "Returned by Subject Head" },
+      RETURNED_BY_HOD: { className: "bg-orange-100 text-orange-700", label: "Returned by HOD" },
+      APPROVED: { className: "bg-green-100 text-green-700", label: "Approved" },
+    };
+    const config = statusConfig[courseFileStatus] || { className: "bg-gray-100", label: courseFileStatus };
+    return <Badge className={config.className}>{config.label}</Badge>;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -177,6 +247,7 @@ export default function CourseStructurePage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <h1 className="text-3xl font-bold tracking-tight">Course Structure</h1>
+            {getStatusBadge()}
           </div>
           <p className="text-muted-foreground">Manage and organize your course materials.</p>
         </div>
@@ -189,6 +260,15 @@ export default function CourseStructurePage() {
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
+          {canSubmit && (
+            <Button
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => setShowSubmitDialog(true)}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              Submit for Review
+            </Button>
+          )}
         </div>
       </div>
 
@@ -279,6 +359,54 @@ export default function CourseStructurePage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Submit Confirmation Dialog */}
+      <Dialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5 text-green-600" />
+              Submit Course File for Review
+            </DialogTitle>
+            <DialogDescription>
+              Once submitted, your course file will be sent to the Subject Head for review.
+              You will not be able to edit the course file until it is returned or approved.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="flex gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium text-amber-800">Before you submit</p>
+                  <ul className="text-sm text-amber-700 mt-1 space-y-1">
+                    <li>• Ensure all required documents are uploaded</li>
+                    <li>• Check that file names are correct</li>
+                    <li>• Verify all sections are complete</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSubmitDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700"
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              {submitting ? "Submitting..." : "Submit for Review"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

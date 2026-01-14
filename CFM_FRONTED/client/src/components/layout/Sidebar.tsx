@@ -1,9 +1,117 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { sidebarItems, currentUser } from "@/lib/dummy-data";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
+import { authFetch } from "@/utils/authFetch";
+import { Mail } from "lucide-react";
+import {
+  LayoutDashboard,
+  BookOpen,
+  FolderOpen,
+  Upload,
+  BarChart3,
+  Settings,
+  MessageSquare,
+  FileText,
+} from "lucide-react";
+
+// Define sidebar items for Teacher
+const teacherSidebarItems = [
+  { href: "/teacher", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/teacher/courses", label: "My Courses", icon: BookOpen },
+  { href: "/teacher/files", label: "Course Files", icon: FolderOpen },
+  { href: "/teacher/upload", label: "Upload", icon: Upload },
+  { href: "/teacher/comments", label: "Comments", icon: MessageSquare },
+  { href: "/teacher/reports", label: "Reports", icon: BarChart3 },
+  { href: "/teacher/settings", label: "Settings", icon: Settings },
+];
+
+// Define sidebar items for HOD
+const hodSidebarItems = [
+  { href: "/hod", label: "Dept. Overview", icon: LayoutDashboard },
+  { href: "/hod/department-faculty", label: "Faculty-List", icon: FileText },
+  { href: "/hod/department-management", label: "ADD Course", icon: BookOpen },
+  { href: "/hod/courses", label: "Assign-Course", icon: FolderOpen },
+  { href: "/hod/templates", label: "Create Template", icon: FileText },
+  { href: "/hod/approvals", label: "Approve Files", icon: Upload },
+  { href: "/hod/comments", label: "Comments", icon: MessageSquare },
+  { href: "/hod/teachers", label: "Faculty Performance", icon: BarChart3 },
+  { href: "/hod/calendar", label: "Dept. Calendar", icon: Settings },
+  { href: "/hod/settings", label: "Settings", icon: Settings },
+];
+
+// Define sidebar items for Subject Head
+const subjectHeadSidebarItems = [
+  { href: "/subject-head", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/subject-head/subjects", label: "Subjects", icon: BookOpen },
+  { href: "/subject-head/reviews", label: "Reviews", icon: FolderOpen },
+  { href: "/subject-head/comments", label: "Comments", icon: MessageSquare },
+  { href: "/subject-head/settings", label: "Settings", icon: Settings },
+];
+
+interface ProfileData {
+  name: string;
+  email: string;
+  departmentName?: string;
+  profileImageUrl?: string | null;
+}
 
 export function Sidebar({ className }: { className?: string }) {
   const location = useLocation();
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [helpEmail, setHelpEmail] = useState("cfmteam.help@gmail.com");
+
+  useEffect(() => {
+    loadProfile();
+    loadSettings();
+    window.addEventListener("profile-updated", loadProfile);
+    return () => window.removeEventListener("profile-updated", loadProfile);
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      const res = await authFetch("/api/profile");
+      if (res.ok) {
+        const data = await res.json();
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error("Failed to load profile:", error);
+    }
+  };
+
+  const loadSettings = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/public/settings");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.support_email) {
+          setHelpEmail(data.support_email);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load settings:", error);
+    }
+  };
+
+  // Select sidebar items based on role
+  const getSidebarItems = () => {
+    if (user?.role === "HOD") return hodSidebarItems;
+    if (user?.role === "SUBJECT_HEAD") return subjectHeadSidebarItems;
+    return teacherSidebarItems;
+  };
+
+  const sidebarItems = getSidebarItems();
+  const basePath = location.pathname.split("/")[1]; // 'teacher', 'hod', or 'subject-head'
+
+  const getInitials = (name?: string) => {
+    if (!name) return user?.username?.substring(0, 2).toUpperCase() || "US";
+    const parts = name.split(" ");
+    return parts.length >= 2
+      ? (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+      : name.substring(0, 2).toUpperCase();
+  };
 
   return (
     <aside className={cn("flex flex-col h-full border-r bg-sidebar text-sidebar-foreground", className)}>
@@ -28,15 +136,18 @@ export function Sidebar({ className }: { className?: string }) {
           </svg>
         </div>
         <div>
-           <span className="font-bold text-xl tracking-tight block leading-none">CourseFlow</span>
-           <span className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">{currentUser.department}</span>
+          <span className="font-bold text-xl tracking-tight block leading-none">CourseFlow</span>
+          <span className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
+            {profile?.departmentName || (user?.role === "HOD" ? "HOD" : user?.role === "SUBJECT_HEAD" ? "Subject Head" : "Teacher")}
+          </span>
         </div>
       </div>
 
       <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
         <div className="space-y-1">
           {sidebarItems.map((item) => {
-            const isActive = location.pathname === item.href;
+            const isActive = location.pathname === item.href ||
+              (item.href !== `/${basePath}` && location.pathname.startsWith(item.href));
             return (
               <Link key={item.href} to={item.href}>
                 <div
@@ -56,15 +167,33 @@ export function Sidebar({ className }: { className?: string }) {
         </div>
       </nav>
 
-      <div className="p-4 border-t border-sidebar-border/50">
-        <div className="bg-sidebar-accent/50 rounded-lg p-4">
-          <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Storage</h4>
-          <div className="flex justify-between text-xs text-sidebar-foreground mb-1">
-            <span>12.5 GB</span>
-            <span>50 GB</span>
+      {/* User Info + Help Email at Bottom */}
+      <div className="p-4 border-t border-sidebar-border/50 space-y-3">
+        <div className="flex items-center gap-3 px-2">
+          <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold overflow-hidden">
+            {profile?.profileImageUrl ? (
+              <img src={profile.profileImageUrl} alt="Profile" className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-primary">{getInitials(profile?.name)}</span>
+            )}
           </div>
-          <div className="h-1.5 w-full bg-sidebar-border rounded-full overflow-hidden">
-            <div className="h-full bg-primary w-[25%]" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{profile?.name || user?.username || "User"}</p>
+            <p className="text-xs text-muted-foreground truncate">{profile?.email || user?.email || "user@example.com"}</p>
+          </div>
+        </div>
+
+        {/* Help Email */}
+        <div className="flex items-center gap-2 px-2 py-2 bg-muted/50 rounded-lg">
+          <Mail className="h-4 w-4 text-primary shrink-0" />
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase text-muted-foreground font-semibold">Help & Support</p>
+            <a
+              href={`mailto:${helpEmail}`}
+              className="text-xs text-primary hover:underline truncate block"
+            >
+              {helpEmail}
+            </a>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { Bell, Search, LogOut, User, Settings } from "lucide-react";
+import { Bell, Search, LogOut, User, Settings, Moon, Sun, Check, CheckCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,50 +10,141 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// import { currentUser } from "@/lib/dummy-data"; // Removed dummy data
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useEffect, useState } from "react";
+import { authFetch } from "@/utils/authFetch";
+
+interface NotificationItem {
+  id: number;
+  type: string;
+  payload: string;
+  isRead: boolean;
+  createdAt: string;
+}
 
 export function Header({ onMenuClick }: { onMenuClick: () => void }) {
   const navigate = useNavigate();
-  const { user, logout, getRoleBasedRedirect } = useAuth();
-  const [logo, setLogo] = useState<string | null>(null);
+  const { user, logout } = useAuth();
+  const { isDark, toggleDark } = useTheme();
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  // Listen for logo updates from AdminSettingsPage
   useEffect(() => {
-    const loadLogo = async () => {
-      try {
-        const res = await fetch("http://localhost:8080/api/public/settings");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.system_logo) {
-            setLogo(data.system_logo);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load logo", error);
-      }
-    };
+    loadProfileImage();
+    loadNotifications();
+    window.addEventListener("profile-updated", loadProfileImage);
 
-    loadLogo();
-    window.addEventListener("logo-updated", loadLogo);
-    return () => window.removeEventListener("logo-updated", loadLogo);
+    // Poll notifications every 30 seconds
+    const interval = setInterval(loadNotifications, 30000);
+
+    return () => {
+      window.removeEventListener("profile-updated", loadProfileImage);
+      clearInterval(interval);
+    };
   }, []);
+
+  const loadProfileImage = async () => {
+    try {
+      const res = await authFetch("/api/profile");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.profileImageUrl) {
+          setProfileImage(data.profileImageUrl);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load profile image", error);
+    }
+  };
+
+  const loadNotifications = async () => {
+    try {
+      const [notifRes, countRes] = await Promise.all([
+        authFetch("/api/notifications"),
+        authFetch("/api/notifications/unread-count")
+      ]);
+
+      if (notifRes.ok) {
+        const data = await notifRes.json();
+        setNotifications(data.slice(0, 10)); // Show latest 10
+      }
+
+      if (countRes.ok) {
+        const countData = await countRes.json();
+        setUnreadCount(countData.count || 0);
+      }
+    } catch (error) {
+      console.error("Failed to load notifications", error);
+    }
+  };
+
+  const markAsRead = async (id: number) => {
+    try {
+      await authFetch(`/api/notifications/${id}/read`, { method: "PUT" });
+      setNotifications(prev =>
+        prev.map(n => n.id === id ? { ...n, isRead: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error("Failed to mark as read", error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await authFetch("/api/notifications/mark-all-read", { method: "PUT" });
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Failed to mark all as read", error);
+    }
+  };
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  const handleProfileClick = () => {
-    // Navigate to settings based on role, or a dedicated profile page if it existed
-    // For Admin, user wants "System Settings" access via Profile
-    if (user?.role === "ADMIN") {
-      navigate("/admin/settings");
-    } else {
-      navigate("/teacher/settings");
+  const handleSettingsClick = () => {
+    const role = user?.role;
+    if (role === "ADMIN") navigate("/admin/settings");
+    else if (role === "HOD") navigate("/hod/settings");
+    else if (role === "SUBJECT_HEAD") navigate("/subject-head/settings");
+    else navigate("/teacher/settings");
+  };
+
+  const getInitials = (name?: string) => {
+    if (!name) return "??";
+    const parts = name.split(" ");
+    if (parts.length >= 2) {
+      return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
     }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const parsePayload = (payload: string) => {
+    try {
+      return JSON.parse(payload);
+    } catch {
+      return { message: payload };
+    }
+  };
+
+  const formatTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
   };
 
   return (
@@ -75,17 +166,87 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
       </div>
 
       <div className="flex items-center gap-3 md:gap-4">
-        <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-2.5 right-2.5 h-2 w-2 bg-red-500 rounded-full border-2 border-background" />
+        {/* Dark Mode Toggle */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-foreground"
+          onClick={toggleDark}
+        >
+          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
 
+        {/* Notifications */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 h-5 w-5 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-80" align="end" forceMount>
+            <div className="flex items-center justify-between px-2 py-1.5">
+              <DropdownMenuLabel className="py-0">Notifications</DropdownMenuLabel>
+              {unreadCount > 0 && (
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={markAllAsRead}>
+                  <CheckCheck className="h-3 w-3 mr-1" />
+                  Mark all read
+                </Button>
+              )}
+            </div>
+            <DropdownMenuSeparator />
+
+            {notifications.length === 0 ? (
+              <div className="p-4 text-center text-muted-foreground">
+                <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No notifications</p>
+                <p className="text-xs mt-1">You're all caught up!</p>
+              </div>
+            ) : (
+              <div className="max-h-80 overflow-y-auto">
+                {notifications.map((notif) => {
+                  const payload = parsePayload(notif.payload);
+                  return (
+                    <div
+                      key={notif.id}
+                      className={`p-3 border-b last:border-0 hover:bg-muted/50 cursor-pointer ${!notif.isRead ? "bg-blue-50/50 dark:bg-blue-950/20" : ""
+                        }`}
+                      onClick={() => !notif.isRead && markAsRead(notif.id)}
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className={`h-2 w-2 rounded-full mt-1.5 ${!notif.isRead ? "bg-blue-500" : "bg-transparent"}`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{notif.type?.replace(/_/g, " ")}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {payload.message || payload.title || "New notification"}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">{formatTimeAgo(notif.createdAt)}</p>
+                        </div>
+                        {!notif.isRead && (
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); markAsRead(notif.id); }}>
+                            <Check className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Profile */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-9 w-9 border border-border">
-                <AvatarImage src={logo || undefined} alt={user?.username} />
-                <AvatarFallback>{user?.username?.substring(0, 2).toUpperCase() || 'US'}</AvatarFallback>
+                <AvatarImage src={profileImage || undefined} alt={user?.username} />
+                <AvatarFallback>{getInitials(user?.username)}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
@@ -93,19 +254,21 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{user?.username}</p>
-                <p className="text-xs leading-none text-muted-foreground">
-                  {user?.email}
-                </p>
+                <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleProfileClick}>
+            <DropdownMenuItem onClick={handleSettingsClick}>
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleProfileClick}>
+            <DropdownMenuItem onClick={handleSettingsClick}>
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={toggleDark}>
+              {isDark ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+              <span>{isDark ? "Light Mode" : "Dark Mode"}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">

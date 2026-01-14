@@ -1,12 +1,64 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { adminSidebarItems } from "@/lib/dummy-data";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
+import { authFetch } from "@/utils/authFetch";
+import { Mail } from "lucide-react";
+
+interface ProfileData {
+  name: string;
+  email: string;
+  profileImageUrl?: string | null;
+  username: string;
+}
 
 export function AdminSidebar({ className }: { className?: string }) {
   const location = useLocation();
   const { user } = useAuth();
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [helpEmail, setHelpEmail] = useState("cfmteam.help@gmail.com");
+
+  useEffect(() => {
+    loadProfile();
+    loadSettings();
+    window.addEventListener("profile-updated", loadProfile);
+    return () => window.removeEventListener("profile-updated", loadProfile);
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      const res = await authFetch("/api/profile");
+      if (res.ok) {
+        const data = await res.json();
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error("Failed to load admin profile:", error);
+    }
+  };
+
+  const loadSettings = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/public/settings");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.support_email) {
+          setHelpEmail(data.support_email);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load settings:", error);
+    }
+  };
+
+  const getInitials = (name?: string) => {
+    if (!name) return user?.username?.substring(0, 2).toUpperCase() || "AD";
+    const parts = name.split(" ");
+    return parts.length >= 2
+      ? (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+      : name.substring(0, 2).toUpperCase();
+  };
 
   return (
     <aside className={cn("flex flex-col h-full border-r bg-slate-900 text-slate-50", className)}>
@@ -33,8 +85,6 @@ export function AdminSidebar({ className }: { className?: string }) {
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {adminSidebarItems.map((item) => {
-          // Check if current location starts with the item href (for active states on sub-pages)
-          // Exact match for dashboard, prefix match for others
           const isActive = item.href === "/admin"
             ? location.pathname === "/admin"
             : location.pathname.startsWith(item.href);
@@ -57,14 +107,33 @@ export function AdminSidebar({ className }: { className?: string }) {
         })}
       </nav>
 
-      <div className="p-4 border-t border-slate-800">
+      {/* User Info + Help Email at Bottom */}
+      <div className="p-4 border-t border-slate-800 space-y-3">
         <div className="flex items-center gap-3 px-2">
-          <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold">
-            {user?.username?.substring(0, 2).toUpperCase() || 'AD'}
+          <div className="h-9 w-9 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold overflow-hidden">
+            {profile?.profileImageUrl ? (
+              <img src={profile.profileImageUrl} alt="Profile" className="h-full w-full object-cover" />
+            ) : (
+              <span>{getInitials(profile?.name)}</span>
+            )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user?.username || 'Admin User'}</p>
-            <p className="text-xs text-slate-500 truncate">{user?.email || 'admin@example.com'}</p>
+            <p className="text-sm font-medium truncate">{profile?.name || profile?.username || user?.username || "Admin"}</p>
+            <p className="text-xs text-slate-500 truncate">{profile?.email || user?.email || "admin@example.com"}</p>
+          </div>
+        </div>
+
+        {/* Help Email */}
+        <div className="flex items-center gap-2 px-2 py-2 bg-slate-800/50 rounded-lg">
+          <Mail className="h-4 w-4 text-blue-400 shrink-0" />
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase text-slate-500 font-semibold">Help & Support</p>
+            <a
+              href={`mailto:${helpEmail}`}
+              className="text-xs text-blue-400 hover:text-blue-300 truncate block"
+            >
+              {helpEmail}
+            </a>
           </div>
         </div>
       </div>
