@@ -211,24 +211,29 @@ export default function LoginPage() {
                   )}
                 />
 
-                {/* REMEMBER */}
-                <FormField
-                  control={form.control}
-                  name="remember"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-2">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Remember me
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
+                {/* REMEMBER + FORGOT PASSWORD */}
+                <div className="flex items-center justify-between">
+                  <FormField
+                    control={form.control}
+                    name="remember"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center gap-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Remember me
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+                    Forgot Password?
+                  </Link>
+                </div>
 
                 <Button type="submit" className="w-full">
                   Sign In

@@ -310,6 +310,11 @@ export default function SettingsPage() {
                       <Input type="password" {...field} />
                     </FormControl>
                     <FormMessage />
+                    <div className="text-right">
+                      <a href="/forgot-password" target="_blank" className="text-xs text-primary hover:underline">
+                        Forgot current password?
+                      </a>
+                    </div>
                   </FormItem>
                 )}
               />

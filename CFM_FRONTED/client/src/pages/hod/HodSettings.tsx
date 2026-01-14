@@ -218,7 +218,18 @@ export default function HodSettingsPage() {
                     <Form {...passwordForm}>
                         <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
                             <FormField control={passwordForm.control} name="currentPassword" render={({ field }) => (
-                                <FormItem><FormLabel>Current Password</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
+                                <FormItem>
+                                    <FormLabel>Current Password</FormLabel>
+                                    <FormControl>
+                                        <Input type="password" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    <div className="text-right">
+                                        <a href="/forgot-password" target="_blank" className="text-xs text-primary hover:underline">
+                                            Forgot current password?
+                                        </a>
+                                    </div>
+                                </FormItem>
                             )} />
                             <FormField control={passwordForm.control} name="newPassword" render={({ field }) => (
                                 <FormItem><FormLabel>New Password</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
