@@ -1,5 +1,5 @@
 
-import { Home, BookOpen, FileText,Plus, BarChart2, Settings, UploadCloud, User, Shield, HardDrive, Building, Layers, Calendar, ClipboardCheck, History, MessageSquare } from "lucide-react";
+import { Home, BookOpen, FileText, Plus, BarChart2, Settings, UploadCloud, User, Shield, HardDrive, Building, Layers, Calendar, ClipboardCheck, History, MessageSquare } from "lucide-react";
 
 export const currentUser = {
   id: 5,
@@ -74,28 +74,28 @@ export const course_teacher = [
 
 // ========== TEMPLATE (from database) ==========
 export const templates = [
-  { 
-    id: 1, 
+  {
+    id: 1,
     department_id: 1,
-    name: "Course Syllabus Template", 
+    name: "Course Syllabus Template",
     description: "Standard course syllabus structure",
     structure: ["Course Outcomes", "Weekly Plan", "Textbooks & References", "Assessment Methods"],
     checklist: ["Syllabus approved", "Materials compiled"],
     created_by: 5
   },
-  { 
-    id: 2, 
+  {
+    id: 2,
     department_id: 1,
-    name: "Lab Manual Structure", 
+    name: "Lab Manual Structure",
     description: "Laboratory manual format",
     structure: ["Objective", "Equipment", "Procedure", "Expected Results", "Precautions"],
     checklist: ["Safety guidelines", "Equipment list verified"],
     created_by: 5
   },
-  { 
-    id: 3, 
+  {
+    id: 3,
     department_id: 1,
-    name: "Exam Paper Format", 
+    name: "Exam Paper Format",
     description: "Question paper structure",
     structure: ["Section A", "Section B", "Section C", "Marking Scheme"],
     checklist: ["Questions verified", "Answers prepared"],
@@ -169,7 +169,7 @@ export const sidebarItems = [
   // Use relative paths so Sidebar works inside /teacher and /subject-head layouts
   { icon: Home, label: "Dashboard", href: "dashboard" },
   { icon: BookOpen, label: "My Courses", href: "courses" },
-  { icon: FileText, label: "Course Files", href: "teacher-notes" },
+  { icon: FileText, label: "Course Files", href: "files" },
   { icon: UploadCloud, label: "Templates", href: "template-selection" },
   { icon: MessageSquare, label: "Comments", href: "comments" },
   { icon: BarChart2, label: "Reports", href: "reports" },
@@ -196,9 +196,9 @@ export const teacherPerformance = [
 
 export const hodSidebarItems = [
   { icon: BarChart2, label: "Dept. Overview", href: "/hod/overview" },
-  { icon: User, label: "Faculty-List", href: "/hod/department-faculty"},
-  { icon: Plus, label: "ADD Course", href: "/hod/department-management"},
-  { icon: FileText, label: "Assign-Course", href: "/hod/courses"},
+  { icon: User, label: "Faculty-List", href: "/hod/department-faculty" },
+  { icon: Plus, label: "ADD Course", href: "/hod/department-management" },
+  { icon: FileText, label: "Assign-Course", href: "/hod/courses" },
   { icon: FileText, label: "Create Template", href: "/hod/templates" },
   { icon: Shield, label: "Approve Files", href: "/hod/approvals" },
   { icon: User, label: "Faculty Performance", href: "/hod/teachers" },

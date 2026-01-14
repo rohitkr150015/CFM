@@ -95,4 +95,38 @@ public class DocumentController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + document.getFileName() + "\"")
                 .body(resource);
     }
+
+    @GetMapping("/view/{id}")
+    public ResponseEntity<Resource> viewDocument(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails user) throws IOException {
+        Document document = documentService.getDocumentById(id);
+        Path filePath = Paths.get(document.getFilePath());
+        Resource resource = new UrlResource(filePath.toUri());
+
+        if (!resource.exists()) {
+            throw new RuntimeException("File not found");
+        }
+
+        // Determine content type based on file extension
+        String fileName = document.getFileName().toLowerCase();
+        MediaType contentType = MediaType.APPLICATION_OCTET_STREAM;
+
+        if (fileName.endsWith(".pdf")) {
+            contentType = MediaType.APPLICATION_PDF;
+        } else if (fileName.endsWith(".png")) {
+            contentType = MediaType.IMAGE_PNG;
+        } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+            contentType = MediaType.IMAGE_JPEG;
+        } else if (fileName.endsWith(".gif")) {
+            contentType = MediaType.IMAGE_GIF;
+        } else if (fileName.endsWith(".txt")) {
+            contentType = MediaType.TEXT_PLAIN;
+        }
+
+        return ResponseEntity.ok()
+                .contentType(contentType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + document.getFileName() + "\"")
+                .body(resource);
+    }
 }
