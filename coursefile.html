@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Course File Presentation">
+    <title>Course File - BCS-054</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9;
+            color: #333;
+        }
+
+        /* Sidebar styling */
+        .sidebar {
+            height: 100vh;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #2c3e50;
+            padding-top: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+	    overflow-y: auto;
+        }
+
+        .sidebar a {
+            padding: 15px 30px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #f4f6f9;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #34495e;
+        }
+
+        /* Content styling */
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+
+        .content h1 {
+            font-size: 26px;
+            color: #2980b9;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .content h2 {
+            font-size: 22px;
+            color: #2c3e50;
+            margin-top: 30px;
+        }
+
+        .content h3 {
+            font-size: 15px;
+            color: #2890c9;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+	        margin-left: 10px;
+        }
+
+        .content h4 {
+            font-size: 15px;
+            color: #2870d9;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+	        margin-left: 10px;
+        }
+
+        .content p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        /* Styling for links to PDFs */
+        .pdf-link {
+            font-size: 18px;
+            color: #2980b9;
+            text-decoration: none;
+            padding: 10px 15px;
+            border: 2px solid #2980b9;
+            border-radius: 5px;
+            display: inline-block;
+            transition: 0.3s;
+        }
+
+        .pdf-link:hover {
+            background-color: #2980b9;
+            color: #fff;
+        }
+
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+	table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        thead {
+            background-color: #2980b9;
+            color: #fff;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        tbody tr:hover {
+            background-color: #ecf0f1; /* Highlight row on hover */
+        }
+
+        /* Responsive styling */
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .sidebar a {
+                text-align: center;
+                float: none;
+            }
+
+            .content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar with navigation links -->
+    <div class="sidebar">
+	<a href="#section1">1. MIT Vision & Mission statement</a>
+	<a href="#section2">2. Department Vision & Mission statement</a>
+	<a href="#section3">3. Program Educational Objectives, POs, PSOs, COs, Mapping of COs with POs and PSOs</a>
+	<a href="#section4">4. Course attainment of previous year students</a>
+	<a href="#section5">5. Institute / Department Academic calendar</a>
+	<a href="#section6">6. University Evaluation Scheme</a>
+	<a href="#section7">7. University Course Syllabus</a>
+	<a href="#section8">8. Lesson Plan & Lecture Delivery Schedule</a>
+	<a href="#section9">9. Faculty Introductory Class Covering Prerequisites of the Course</a>
+	<a href="#section10">10. Class Time Table / Faculty Time Table</a>
+	<a href="#section11">11. List of Students section wise</a>
+	<a href="#section13">12. Assignments with COs in compliance to Blooms Taxonomy</a>
+	<a href="#section14">13. Solution of Assignments</a>
+    <a href="#section14">14. Assignment Assessment Reports</a>
+	<a href="#section15">15. Sessional Test & PUT Examination Question Papers</a>
+	<a href="#section16">16. Solution of Sessional Tests/ PUT Examination Question Papers</a>
+	<a href="#section17">17. List of slow learner and Fast learner Students and action taken</a>
+	<a href="#section18">18. Previous Years Question Papers ( AKTU - 3 Years) with solution</a>
+	<a href="#section19">19. Faculty Notes (Handout, PPTs)</a>
+	<a href="#section20">21. Books ,web content, other than Text / Reference Book</a>
+    <a href="#section21">20. GATE/GPAT Questions (wherever applicable)- objective questions from topic based on previous year GATE papers</a>
+	<a href="#section22">22. Combined Sessional Marks List</a>
+        <!-- Add more links as per your 20 heads -->
+    </div>
+
+    <!-- Content Area -->
+    <div class="content">
+        <h1>Course File</h1>
+        <h3>Course Name: OBJECT ORIENTED SYSTEM DESIGN WITH C++</h3>
+	<h3>Course Code: BCS-054</h3>
+	<h3>Prepared by: AMOL SHARMA, Assistant Professor (CSE), MIT, Meerut.</h3>
+
+        <!-- Section 1 -->
+        <h2 id="section1">1. MIT Vision & Mission statement</h2>
+        <a class="pdf-link" href="section1.pdf" target="_blank">View Document</a>
+
+        <!-- Section 2 -->
+        <h2 id="section2">2. Department Vision & Mission statement</h2>
+        <a class="pdf-link" href="section2.pdf" target="_blank">View Document</a>
+
+        <!-- Section 3 -->
+        <h2 id="section3">3. Program Educational Objectives, POs, PSOs, COs, Mapping of COs with POs and PSOs</h2>
+        <a class="pdf-link" href="section3_1.pdf" target="_blank">Program Educational Objectives (PEOs)</a>
+	<a class="pdf-link" href="section3_2.pdf" target="_blank">Program Outcomes (POs)</a>
+	<a class="pdf-link" href="section3_3.pdf" target="_blank">Program Specific Outcomes (PSOs)</a>
+	<a class="pdf-link" href="section3_4.pdf" target="_blank">Course Outcomes (COs)</a>
+	<a class="pdf-link" href="section3_5.pdf" target="_blank">Mapping of COs with POs and PSOs</a>
+
+        <!-- Section 4 -->
+        <h2 id="section4">4. Course attainment of previous year students</h2>
+        <a class="pdf-link" href="javascript:void(0)" onclick="alert('Course attainment of previous year students will be available soon !');">View Document</a>
+
+        <!-- Section 5 -->
+        <h2 id="section5">5. Institute / Department Academic calendar</h2>
+        <a class="pdf-link" href="section5.pdf" target="_blank">View Document</a>
+
+        <!-- Section 6 -->
+        <h2 id="section6">6. University Evaluation Scheme</h2>
+        <a class="pdf-link" href="section6_1.pdf" target="_blank">CSE</a>
+	<a class="pdf-link" href="section6_2.pdf" target="_blank">CSE (AIML)</a>
+	<a class="pdf-link" href="section6_3.pdf" target="_blank">CSE (DS)</a>
+
+        <!-- Section 7 -->
+        <h2 id="section7">7. University Course Syllabus</h2>
+        <a class="pdf-link" href="section7.pdf" target="_blank">View Document</a>
+
+        <!-- Section 8 -->
+        <h2 id="section8">8. Lesson Plan & Lecture Delivery Schedule</h2>
+        <a class="pdf-link" href="section8.pdf" target="_blank">View Document</a>
+
+        <!-- Section 9 -->
+        <h2 id="section9">9. Faculty Introductory Class Covering Prerequisites of the Course</h2>
+        <a class="pdf-link" href="section9.pdf" target="_blank">View Document</a>
+
+        <!-- Section 10 -->
+        <h2 id="section10">10. Class Time Table / Faculty Time Table</h2>
+        <a class="pdf-link" href="section10_1.pdf" target="_blank">Class Time Table</a>
+        <a class="pdf-link" href="section10_2.pdf" target="_blank">Faculty Time Table</a>
+
+        <!-- Section 11 -->
+        <h2 id="section11">11. List of Students section wise</h2>
+        <a class="pdf-link" href="section11_1.pdf" target="_blank">Section A</a>
+	<a class="pdf-link" href="section11_2.pdf" target="_blank">Section B</a>
+	<a class="pdf-link" href="section11_3.pdf" target="_blank">Section C</a>
+
+        <!-- Section 12 -->
+        <h2 id="section12">12. Assignments with COs in compliance to Blooms Taxonomy</h2>
+        <a class="pdf-link" href="section12_1.pdf" target="_blank">Assignment 1</a>
+        <a class="pdf-link" href="section12_2.pdf" target="_blank">Assignment 2</a>
+        <a class="pdf-link" href="section12_3.pdf" target="_blank">Assignment 3</a>
+        <a class="pdf-link" href="section12_4.pdf" target="_blank">Assignment 4</a>
+        <a class="pdf-link" href="section12_5.pdf" target="_blank">Assignment 5</a>
+
+        <!-- Section 13 -->
+        <h2 id="section13">13. Solution of Assignments</h2>
+        <a class="pdf-link" href="section13_1.pdf" target="_blank">Assignment 1</a>
+        <a class="pdf-link" href="section13_2.pdf" target="_blank">Assignment 2</a>
+        <a class="pdf-link" href="section13_3.pdf" target="_blank">Assignment 3</a>
+        <a class="pdf-link" href="section13_4.pdf" target="_blank">Assignment 4</a>
+        <a class="pdf-link" href="section13_5.pdf" target="_blank">Assignment 5</a>
+
+        <!-- Section 14 -->
+        <h2 id="section14">14. Assignment Assessment Reports</h2>
+        <h4>Please refer to column 5 'TA (10)' for the purpose of Assignment Assessment.</h4>
+        <a class="pdf-link" href="section22_1.pdf" target="_blank">CSE</a>
+        <a class="pdf-link" href="section22_2.pdf" target="_blank">CSE - AIML</a>
+        <a class="pdf-link" href="section14_3.pdf" target="_blank">CSE - DS</a>
+
+        <!-- Section 15 -->
+        <h2 id="section15">15. Sessional Test & PUT Examination Question Papers</h2>
+        <a class="pdf-link" href="section15_1_1.pdf" target="_blank">Sessional 1 (Set 1)</a>
+        <a class="pdf-link" href="section15_1_2.pdf" target="_blank">Sessional 1 (Set 2)</a>
+        <a class="pdf-link" href="section15_2.pdf" target="_blank">Sessional 2</a>
+        <a class="pdf-link" href="section15_3.pdf" target="_blank">Pre University Test (PUT)</a>
+
+
+        <!-- Section 16 -->
+        <h2 id="section16">16. Solution of Sessional Tests/ PUT Examination Question Papers</h2>
+        <a class="pdf-link" href="javascript:void(0)" onclick="alert('This document will be available in the future !');">View Document</a>
+
+        <!-- Section 17 -->
+        <h2 id="section17">17. List of slow learner and Fast learner Students and action taken</h2>
+        <a class="pdf-link" href="javascript:void(0)" onclick="alert('This document will be available in the future !');">View Document</a>
+
+        <!-- Section 18 -->
+        <h2 id="section18">18. Previous Years Question Papers ( AKTU - 4 Years) with solution</h2>
+        <a class="pdf-link" href="section18_1.pdf" target="_blank">PYQP: 2020 - 2021</a>
+        <a class="pdf-link" href="section18_2.pdf" target="_blank">PYQP: 2021 - 2022</a>
+        <a class="pdf-link" href="section18_3.pdf" target="_blank">PYQP: 2022 - 2023</a>
+        <a class="pdf-link" href="section18_4.pdf" target="_blank">PYQP: 2023 - 2024</a>
+
+        <!-- Section 19 -->
+        <h2 id="section19">19. Faculty Notes (Handout, PPTs)</h2>
+
+        <strong><p>Unit I: </p></strong>
+	<a class="pdf-link" href="notes/section19_Unit_I.pdf" target="_blank">Introduction</a>
+
+	<strong><p>Unit II: </p></strong>
+	<a class="pdf-link" href="notes/section19_Unit_II_1.pdf" target="_blank">Basic Structural Modeling</a>
+	<a class="pdf-link" href="notes/section19_Unit_II_2.pdf" target="_blank">Use cases and Use case Diagrams</a>
+	<a class="pdf-link" href="notes/section19_Unit_II_3.pdf" target="_blank">Activity Diagrams</a>
+	<a class="pdf-link" href="notes/section19_Unit_II_4.pdf" target="_blank">State Machines</a>
+	<a class="pdf-link" href="notes/section19_Unit_II_5.pdf" target="_blank">Processes and Threads</a>
+	<a class="pdf-link" href="notes/section19_Unit_II_6.pdf" target="_blank">Events and Signals</a>
+	<a class="pdf-link" href="notes/section19_Unit_II_7.pdf" target="_blank">Interaction Diagrams</a>
+	<a class="pdf-link" href="notes/section19_Unit_II_8.pdf" target="_blank">Package Diagram</a>
+	<a class="pdf-link" href="notes/section19_Unit_II_9.pdf" target="_blank">Depicting Aysynchronous Messages with(out) priority</a>
+	<a class="pdf-link" href="notes/section19_Unit_II_10.pdf" target="_blank">Communication Diagram</a>
+	<a class="pdf-link" href="notes/section19_Unit_II_11.pdf" target="_blank">Sequence Diagram</a>
+	<a class="pdf-link" href="notes/section19_Unit_II_12.pdf" target="_blank">The Callback Mechanism</a>
+	<a class="pdf-link" href="notes/section19_Unit_II_13.pdf" target="_blank">Broadcast Messages</a>
+	<a class="pdf-link" href="notes/section19_Unit_II_14.pdf" target="_blank">Component and Component Diagram</a>
+	<a class="pdf-link" href="notes/section19_Unit_II_15.pdf" target="_blank">Deployment and Deployment Diagram</a>
+
+	<strong><p>Unit III: </p></strong>
+	<a class="pdf-link" href="notes/section19_Unit_III_1.pdf" target="_blank">Object Oriented Analysis, Object Oriented Design, and Object Modeling Technique</a>
+	<a class="pdf-link" href="notes/section19_Unit_III_2.pdf" target="_blank">Object Design</a>
+	<a class="pdf-link" href="notes/section19_Unit_III_3_1.pdf" target="_blank">SASD</a>
+	<a class="pdf-link" href="notes/section19_Unit_III_3_2.pdf" target="_blank">JSD</a>
+	<a class="pdf-link" href="notes/section19_Unit_III_4.pdf" target="_blank">Mapping Object Oriented Concepts using Non-Object Orieted Language</a>
+	<a class="pdf-link" href="notes/section19_Unit_III_5.pdf" target="_blank">Object Oriented Programming Style</a>
+	<a class="pdf-link" href="notes/section19_Unit_III_6.pdf" target="_blank">Procedural Vs. OOP</a>
+	<a class="pdf-link" href="notes/section19_Unit_III_7.pdf" target="_blank">Object Oriented Language Features</a>
+
+	<strong><p>Unit IV: </p></strong>
+	<a class="pdf-link" href="notes/section19_Unit_IV_1.pdf" target="_blank">C++ Basics</a>
+	<a class="pdf-link" href="notes/section19_Unit_IV_2.pdf" target="_blank">C++ Functions</a>
+
+	<strong><p>Unit V: </p></strong>
+	<a class="pdf-link" href="notes/section19_Unit_V_1.pdf" target="_blank">Objects and Classes</a>
+	<a class="pdf-link" href="notes/section19_Unit_V_2.pdf" target="_blank">Operator Overloading</a>
+	<a class="pdf-link" href="notes/section19_Unit_V_3.pdf" target="_blank">Inheritance</a>
+	<a class="pdf-link" href="notes/section19_Unit_V_4.pdf" target="_blank">Pure Virtual Functions and Abstract Classes</a>
+	<a class="pdf-link" href="notes/section19_Unit_V_5.pdf" target="_blank">Virtual Functions</a>
+
+        <!-- Section 20 -->
+        <h2 id="section20">20. Books ,web content, other than Text / Reference Book</h2>
+	<h3> Books </h3>
+    <table>
+        <thead>
+            <tr>
+                <th>S.No.</th>
+                <th>Title</th>
+                <th>Authors</th>
+                <th>Edition</th>
+                <th>Link to View Book</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>The Unified Modeling Language User Guide</td>
+                <td>Grady Booch, James Rumbaugh, Ivar Jacobson</td>
+                <td>2nd Edition</td>
+                <td><a class="pdf-link" href="section20_1.pdf" target="_blank">View Book</a></td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>The Unified Modeling Language Reference Manual</td>
+                <td>James Rumbaugh, Ivar Jacobson, Grady Booch</td>
+                <td>2nd Edition</td>
+                <td><a class="pdf-link" href="section20_2.pdf" target="_blank">View Book</a></td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Object-Oriented Analysis and Design with Applications</td>
+		<td>Grady Booch, Robert A. Maksimchuk, Michael W. Engle, et al.</td>
+                <!--<td>Grady Booch, Robert A. Maksimchuk, Michael W. Engle, Bobbi J. Young, Ph.D., Jim Conallen, Kelli A. Houston</td>-->
+                <td>3rd Edition</td>
+                <td><a class="pdf-link" href="section20_3.pdf" target="_blank">View Book</a></td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Object Oriented Programming with C++</td>
+                <td>E. Balagurusamy</td>
+                <td>4th Edition</td>
+                <td><a class="pdf-link" href="section20_4.pdf" target="_blank">View Book</a></td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>C++: The Complete Reference</td>
+                <td>Herbert Schildt</td>
+                <td>4th Edition</td>
+                <td><a class="pdf-link" href="section20_5.pdf" target="_blank">View Book</a></td>
+            </tr>
+            <!-- Add more rows as needed -->
+        </tbody>
+    </table>
+
+        <!-- Section 21 -->
+        <h2 id="section21">21. GATE/GPAT Questions (wherever applicable)- objective questions from topic based on previous year GATE papers</h2>
+        <a class="pdf-link" href="javascript:void(0)" onclick="alert('This document will be available in the future !');">View Document</a>
+
+        <!-- Section 22 -->
+        <h2 id="section22">22. Combined Sessional Marks List</h2>
+        <a class="pdf-link" href="section22_1.pdf" target="_blank">CSE</a>
+        <a class="pdf-link" href="section22_2.pdf" target="_blank">CSE - AIML</a>
+        <a class="pdf-link" href="section22_3.pdf" target="_blank">CSE - DS</a>
+
+        <!-- Add more sections similarly for each head (up to 20 sections) -->
+    </div>
+
+</body>
+</html>

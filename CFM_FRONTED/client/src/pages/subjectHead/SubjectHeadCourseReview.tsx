@@ -27,7 +27,11 @@ import {
     ChevronDown,
     ChevronRight,
     RefreshCw,
+    LayoutGrid,
+    MessageSquare,
 } from "lucide-react";
+import { EnhancedCourseFileView } from "@/components/EnhancedCourseFileView";
+import { InlineCommentDialog } from "@/components/InlineCommentDialog";
 
 /* =======================
    TYPES
@@ -78,6 +82,15 @@ export default function SubjectHeadCourseReviewPage() {
     const [showRejectDialog, setShowRejectDialog] = useState(false);
     const [comment, setComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [showEnhancedView, setShowEnhancedView] = useState(false);
+
+    // Comment dialog state
+    const [commentTarget, setCommentTarget] = useState<{
+        headingId?: number;
+        documentId?: number;
+        headingTitle?: string;
+        fileName?: string;
+    } | null>(null);
 
     // File viewer
     const [viewingFile, setViewingFile] = useState<{ id: number; name: string } | null>(null);
@@ -290,6 +303,21 @@ export default function SubjectHeadCourseReviewPage() {
                                 {heading.documents.length} files
                             </Badge>
                         )}
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 ml-auto"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setCommentTarget({
+                                    headingId: heading.id,
+                                    headingTitle: heading.title,
+                                });
+                            }}
+                            title="Add comment"
+                        >
+                            <MessageSquare className="h-3.5 w-3.5 text-blue-600" />
+                        </Button>
                     </div>
 
                     {/* Documents */}
@@ -321,6 +349,22 @@ export default function SubjectHeadCourseReviewPage() {
                                             title="View"
                                         >
                                             <Eye className="h-3.5 w-3.5 text-blue-600" />
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 w-7"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setCommentTarget({
+                                                    headingId: heading.id,
+                                                    documentId: doc.id,
+                                                    fileName: doc.fileName,
+                                                });
+                                            }}
+                                            title="Comment"
+                                        >
+                                            <MessageSquare className="h-3.5 w-3.5 text-blue-600" />
                                         </Button>
                                         <Button
                                             size="sm"
@@ -383,6 +427,14 @@ export default function SubjectHeadCourseReviewPage() {
 
                 {canTakeAction && (
                     <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                            onClick={() => setShowEnhancedView(true)}
+                        >
+                            <LayoutGrid className="h-4 w-4 mr-2" />
+                            View More Structured
+                        </Button>
                         <Button
                             variant="outline"
                             className="text-red-600 border-red-200 hover:bg-red-50"
@@ -564,6 +616,31 @@ export default function SubjectHeadCourseReviewPage() {
                     onClose={() => setViewingFile(null)}
                     fileId={String(viewingFile.id)}
                     fileName={viewingFile.name}
+                />
+            )}
+
+            {/* Enhanced Structured View */}
+            {showEnhancedView && courseFileId && (
+                <EnhancedCourseFileView
+                    courseFileId={parseInt(courseFileId)}
+                    courseName={`${courseFile?.courseCode} - ${courseFile?.courseTitle}`}
+                    courseCode={courseFile?.courseCode || ""}
+                    teacherName={courseFile?.teacherName}
+                    onClose={() => setShowEnhancedView(false)}
+                    useReviewApi={true}
+                />
+            )}
+
+            {/* Inline Comment Dialog */}
+            {commentTarget && courseFileId && (
+                <InlineCommentDialog
+                    courseFileId={parseInt(courseFileId)}
+                    headingId={commentTarget.headingId}
+                    documentId={commentTarget.documentId}
+                    headingTitle={commentTarget.headingTitle}
+                    fileName={commentTarget.fileName}
+                    isOpen={!!commentTarget}
+                    onClose={() => setCommentTarget(null)}
                 />
             )}
         </div>

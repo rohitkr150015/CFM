@@ -8,5 +8,5 @@ public class AssignCourseDTO {
     private Long teacherId;
     private String section;
     private String academicYear;
-
+    private Boolean isSubjectHead = false;
 }

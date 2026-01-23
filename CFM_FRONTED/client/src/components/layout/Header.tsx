@@ -96,7 +96,8 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
   const markAllAsRead = async () => {
     try {
       await authFetch("/api/notifications/mark-all-read", { method: "PUT" });
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      // Clear notifications from the dropdown
+      setNotifications([]);
       setUnreadCount(0);
     } catch (error) {
       console.error("Failed to mark all as read", error);
@@ -210,6 +211,7 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
               <div className="max-h-80 overflow-y-auto">
                 {notifications.map((notif) => {
                   const payload = parsePayload(notif.payload);
+                  const isPermissionChange = notif.type === "PERMISSION_CHANGED";
                   return (
                     <div
                       key={notif.id}
@@ -221,9 +223,20 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
                         <div className={`h-2 w-2 rounded-full mt-1.5 ${!notif.isRead ? "bg-blue-500" : "bg-transparent"}`} />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{notif.type?.replace(/_/g, " ")}</p>
-                          <p className="text-xs text-muted-foreground line-clamp-2">
+                          <p className="text-xs text-muted-foreground">
                             {payload.message || payload.title || "New notification"}
                           </p>
+                          {isPermissionChange && payload.oldPermissions && payload.newPermissions && (
+                            <div className="mt-2 p-2 bg-muted/50 rounded text-xs space-y-1">
+                              <p className="font-medium text-foreground">Role: {payload.roleName}</p>
+                              <p className="text-red-500 line-through">
+                                Old: {Array.isArray(payload.oldPermissions) ? payload.oldPermissions.join(", ") : payload.oldPermissions}
+                              </p>
+                              <p className="text-green-600">
+                                New: {Array.isArray(payload.newPermissions) ? payload.newPermissions.join(", ") : payload.newPermissions}
+                              </p>
+                            </div>
+                          )}
                           <p className="text-xs text-muted-foreground mt-1">{formatTimeAgo(notif.createdAt)}</p>
                         </div>
                         {!notif.isRead && (

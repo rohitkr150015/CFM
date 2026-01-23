@@ -2,17 +2,23 @@ package com.mitmeerut.CFM_Portal.Controller;
 
 import com.mitmeerut.CFM_Portal.Model.Teacher;
 import com.mitmeerut.CFM_Portal.Model.User;
+import com.mitmeerut.CFM_Portal.Model.RolePermission;
 import com.mitmeerut.CFM_Portal.Repository.TeacherRepository;
 import com.mitmeerut.CFM_Portal.Repository.UserRepository;
 import com.mitmeerut.CFM_Portal.Service.CloudinaryService;
+import com.mitmeerut.CFM_Portal.Service.RolePermissionService;
 import com.mitmeerut.CFM_Portal.security.user.CustomUserDetails;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -23,15 +29,19 @@ public class UserProfileController {
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
     private final PasswordEncoder passwordEncoder;
+    private final RolePermissionService rolePermissionService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public UserProfileController(TeacherRepository teacherRepository,
             UserRepository userRepository,
             CloudinaryService cloudinaryService,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            RolePermissionService rolePermissionService) {
         this.teacherRepository = teacherRepository;
         this.userRepository = userRepository;
         this.cloudinaryService = cloudinaryService;
         this.passwordEncoder = passwordEncoder;
+        this.rolePermissionService = rolePermissionService;
     }
 
     /**
@@ -63,6 +73,42 @@ public class UserProfileController {
         }
 
         return ResponseEntity.ok(profile);
+    }
+
+    /**
+     * Get current user's permissions based on their role
+     */
+    @GetMapping("/permissions")
+    public ResponseEntity<Map<String, Object>> getPermissions(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        User user = userDetails.getUser();
+        String roleName = user.getRole().name();
+
+        try {
+            RolePermission rp = rolePermissionService.getByRoleName(roleName)
+                    .orElse(null);
+
+            List<String> permissions;
+            if (rp != null && rp.getPermissions() != null) {
+                permissions = objectMapper.readValue(
+                        rp.getPermissions(),
+                        new TypeReference<List<String>>() {
+                        });
+            } else {
+                permissions = new ArrayList<>();
+            }
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("role", roleName);
+            result.put("permissions", permissions);
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of(
+                    "role", roleName,
+                    "permissions", new ArrayList<>()));
+        }
     }
 
     /**

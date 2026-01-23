@@ -167,13 +167,20 @@ export const files = [
 
 export const sidebarItems = [
   // Use relative paths so Sidebar works inside /teacher and /subject-head layouts
-  { icon: Home, label: "Dashboard", href: "dashboard" },
-  { icon: BookOpen, label: "My Courses", href: "courses" },
-  { icon: FileText, label: "Course Files", href: "files" },
-  { icon: UploadCloud, label: "Templates", href: "template-selection" },
-  { icon: MessageSquare, label: "Comments", href: "comments" },
-  { icon: BarChart2, label: "Reports", href: "reports" },
-  { icon: Settings, label: "Settings", href: "settings" },
+  // Base items (always visible)
+  { icon: Home, label: "Dashboard", href: "dashboard", requiredPermission: null },
+  { icon: BookOpen, label: "My Courses", href: "courses", requiredPermission: null },
+  // Permission-gated items
+  { icon: FileText, label: "Course Files", href: "files", requiredPermission: "create_course_file" },
+  { icon: UploadCloud, label: "Templates", href: "template-selection", requiredPermission: "create_course_file" },
+  { icon: Shield, label: "Approvals", href: "approvals", requiredPermission: "approve_file" },
+  { icon: User, label: "Faculty List", href: "faculty-list", requiredPermission: "manage_dept" },
+  { icon: Plus, label: "Add Course", href: "add-course", requiredPermission: "manage_dept" },
+  { icon: FileText, label: "Assign Course", href: "assign-course", requiredPermission: "manage_dept" },
+  { icon: BarChart2, label: "Reports", href: "reports", requiredPermission: "view_reports" },
+  // Always visible
+  { icon: MessageSquare, label: "Comments", href: "comments", requiredPermission: null },
+  { icon: Settings, label: "Settings", href: "settings", requiredPermission: null },
 ];
 
 // --- HOD DATA ---
@@ -195,15 +202,15 @@ export const teacherPerformance = [
 ];
 
 export const hodSidebarItems = [
-  { icon: BarChart2, label: "Dept. Overview", href: "/hod/overview" },
-  { icon: User, label: "Faculty-List", href: "/hod/department-faculty" },
-  { icon: Plus, label: "ADD Course", href: "/hod/department-management" },
-  { icon: FileText, label: "Assign-Course", href: "/hod/courses" },
-  { icon: FileText, label: "Create Template", href: "/hod/templates" },
-  { icon: Shield, label: "Approve Files", href: "/hod/approvals" },
-  { icon: MessageSquare, label: "Comments", href: "/hod/comments" },
-  { icon: User, label: "Faculty Performance", href: "/hod/teachers" },
-  { icon: Calendar, label: "Dept. Calendar", href: "/hod/calendar" },
+  { icon: BarChart2, label: "Dept. Overview", href: "/hod/overview", requiredPermission: null },
+  { icon: User, label: "Faculty-List", href: "/hod/department-faculty", requiredPermission: "manage_dept" },
+  { icon: Plus, label: "ADD Course", href: "/hod/department-management", requiredPermission: "manage_dept" },
+  { icon: FileText, label: "Assign-Course", href: "/hod/courses", requiredPermission: "manage_dept" },
+  { icon: FileText, label: "Create Template", href: "/hod/templates", requiredPermission: "create_course_file" },
+  { icon: Shield, label: "Approve Files", href: "/hod/approvals", requiredPermission: "approve_file" },
+  { icon: MessageSquare, label: "Comments", href: "/hod/comments", requiredPermission: null },
+  { icon: User, label: "Faculty Performance", href: "/hod/teachers", requiredPermission: "view_reports" },
+  { icon: Calendar, label: "Dept. Calendar", href: "/hod/calendar", requiredPermission: null },
 ];
 
 export const recentActivity = [
@@ -237,7 +244,7 @@ export const adminSidebarItems = [
   { icon: User, label: "Users", href: "/admin/users" },
   { icon: User, label: "Faculty", href: "/admin/faculty" },
   { icon: Shield, label: "Roles", href: "/admin/roles" },
-  { icon: ClipboardCheck, label: "Templates", href: "/admin/templates" },
+
   { icon: History, label: "Audit Logs", href: "/admin/audit-logs" },
   { icon: Settings, label: "System Settings", href: "/admin/settings" },
 ];

@@ -21,8 +21,7 @@ public class CourseTeacherService {
     public CourseTeacherService(
             CourseRepository courseRepo,
             TeacherRepository teacherRepo,
-            CourseTeacherRepository courseTeacherRepo
-    ) {
+            CourseTeacherRepository courseTeacherRepo) {
         this.courseRepo = courseRepo;
         this.teacherRepo = teacherRepo;
         this.courseTeacherRepo = courseTeacherRepo;
@@ -30,9 +29,7 @@ public class CourseTeacherService {
 
     public void assignCourse(AssignCourseDTO dto, CustomUserDetails user) {
 
-
         Teacher hod = user.getTeacher();
-
 
         Teacher teacher = teacherRepo.findById(dto.getTeacherId())
                 .orElseThrow(() -> new RuntimeException("Teacher not found"));
@@ -42,13 +39,10 @@ public class CourseTeacherService {
             throw new AccessDeniedException("Teacher not in your department");
         }
 
-
         Course course = courseRepo.findById(dto.getCourseId())
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-
-        Long courseDeptId =
-                courseRepo.findDepartmentIdByProgramId(course.getProgramId());
+        Long courseDeptId = courseRepo.findDepartmentIdByProgramId(course.getProgramId());
 
         if (!courseDeptId.equals(hod.getDepartment().getId())) {
             throw new AccessDeniedException("Course not in your department");
@@ -59,17 +53,16 @@ public class CourseTeacherService {
                         dto.getCourseId(),
                         dto.getTeacherId(),
                         dto.getAcademicYear(),
-                        dto.getSection()
-                )) {
+                        dto.getSection())) {
             throw new RuntimeException("Course already assigned");
         }
-
 
         CourseTeacher ct = new CourseTeacher();
         ct.setCourse(course);
         ct.setTeacher(teacher);
         ct.setAcademicYear(dto.getAcademicYear());
         ct.setSection(dto.getSection());
+        ct.setIsSubjectHead(dto.getIsSubjectHead() != null ? dto.getIsSubjectHead() : false);
 
         courseTeacherRepo.save(ct);
     }

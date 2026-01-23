@@ -13,7 +13,8 @@ import {
   X,
   Loader2,
   Eye,
-  ExternalLink
+  ExternalLink,
+  MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +57,7 @@ interface CourseStructureTreeProps {
   initialStructure: TreeNode;
   onStructureChange: (structure: TreeNode) => void;
   onRefresh?: () => void;
+  onOpenComment?: (target: { headingId?: number; documentId?: number; headingTitle?: string; fileName?: string }) => void;
 }
 
 const calculateCompletion = (node: TreeNode): number => {

@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/contexts/PermissionContext";
 import { useEffect, useState } from "react";
 import { authFetch } from "@/utils/authFetch";
 import { Mail } from "lucide-react";
@@ -18,6 +19,7 @@ interface ProfileData {
 export default function HodSidebar() {
   const location = useLocation();
   const { user } = useAuth();
+  const { hasPermission, loading: permissionsLoading } = usePermissions();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [helpEmail, setHelpEmail] = useState("cfmteam.help@gmail.com");
 
@@ -62,6 +64,12 @@ export default function HodSidebar() {
       : name.substring(0, 2).toUpperCase();
   };
 
+  // Filter sidebar items based on permissions
+  const filteredItems = hodSidebarItems.filter(item => {
+    if (!item.requiredPermission) return true;
+    return hasPermission(item.requiredPermission);
+  });
+
   return (
     <aside className="flex flex-col h-full w-64 border-r bg-sidebar">
       <SidebarHeader
@@ -70,7 +78,7 @@ export default function HodSidebar() {
       />
 
       <nav className="flex-1 p-4 space-y-1">
-        {hodSidebarItems.map((item) => (
+        {filteredItems.map((item) => (
           <SidebarItem
             key={item.label}
             icon={item.icon}

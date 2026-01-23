@@ -7,6 +7,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { queryClient } from "./lib/queryClient";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { PermissionProvider } from "@/contexts/PermissionContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 /* ===================== AUTH PAGES ===================== */
@@ -95,7 +96,7 @@ function Router() {
         <Route path="institutes" element={<AdminInstitutesPage />} />
         <Route path="departments" element={<AdminDepartmentsPage />} />
         <Route path="programs" element={<AdminProgramsPage />} />
-        <Route path="templates" element={<AdminTemplatesPage />} />
+
         <Route path="audit-logs" element={<AdminAuditLogsPage />} />
         <Route path="settings" element={<AdminSettingsPage />} />
       </Route>
@@ -142,7 +143,13 @@ function Router() {
         <Route path="review/:courseFileId" element={<SubjectHeadCourseReviewPage />} />
         <Route path="courses" element={<SubjectHeadSubjectsPage />} />
         <Route path="history" element={<SubjectHeadReviewsPage />} />
-        <Route path="reports" element={<SubjectHeadDashboardPage />} />
+        <Route path="reports" element={<ReportsPage />} />
+        {/* Permission-gated routes */}
+        <Route path="approvals" element={<HodApprovalsPage />} />
+        <Route path="files" element={<FilesPage />} />
+        <Route path="templates" element={<TemplateSelectionPage />} />
+        <Route path="faculty-list" element={<DepartmentFacultyPage />} />
+        <Route path="add-course" element={<DepartmentManagementPage />} />
       </Route>
 
 
@@ -168,6 +175,10 @@ function Router() {
         <Route path="teacher-notes" element={<TeacherNotesUploadPage />} />
         <Route path="approvals" element={<ApprovalWorkflowPage />} />
         <Route path="view-course-file" element={<ViewCourseFilePage />} />
+        {/* Permission-gated routes (reuse HOD pages) */}
+        <Route path="faculty-list" element={<DepartmentFacultyPage />} />
+        <Route path="add-course" element={<DepartmentManagementPage />} />
+        <Route path="assign-course" element={<AssignCoursesPage />} />
       </Route>
 
       {/* ================= LEGACY REDIRECTS ================= */}
@@ -186,12 +197,14 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <ErrorBoundary>
-              <Router />
-            </ErrorBoundary>
-          </TooltipProvider>
+          <PermissionProvider>
+            <TooltipProvider>
+              <Toaster />
+              <ErrorBoundary>
+                <Router />
+              </ErrorBoundary>
+            </TooltipProvider>
+          </PermissionProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

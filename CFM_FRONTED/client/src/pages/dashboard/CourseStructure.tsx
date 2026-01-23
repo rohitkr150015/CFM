@@ -13,7 +13,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { CourseStructureTree, TreeNode } from "@/components/CourseStructureTree";
-import { Download, Save, HelpCircle, ArrowLeft, Upload, RefreshCw, Send, AlertCircle } from "lucide-react";
+import { EnhancedCourseFileView } from "@/components/EnhancedCourseFileView";
+import { InlineCommentDialog } from "@/components/InlineCommentDialog";
+import { Download, Save, HelpCircle, ArrowLeft, Upload, RefreshCw, Send, AlertCircle, LayoutGrid, MessageSquare } from "lucide-react";
 import { authFetch } from "@/utils/authFetch";
 import { useToast } from "@/hooks/use-toast";
 
@@ -102,6 +104,8 @@ export default function CourseStructurePage() {
   const [courseFileStatus, setCourseFileStatus] = useState<string>("DRAFT");
   const [submitting, setSubmitting] = useState(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
+  const [showEnhancedView, setShowEnhancedView] = useState(false);
+  const [showCommentsDialog, setShowCommentsDialog] = useState(false);
 
   const loadStructure = async () => {
     if (!courseId) return;
@@ -256,6 +260,22 @@ export default function CourseStructurePage() {
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
+          <Button
+            variant="outline"
+            className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+            onClick={() => setShowEnhancedView(true)}
+          >
+            <LayoutGrid className="h-4 w-4 mr-2" />
+            View More Structured
+          </Button>
+          <Button
+            variant="outline"
+            className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+            onClick={() => setShowCommentsDialog(true)}
+          >
+            <MessageSquare className="h-4 w-4 mr-2" />
+            View Comments
+          </Button>
           <Button variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Export
@@ -407,6 +427,25 @@ export default function CourseStructurePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Enhanced Structured View */}
+      {showEnhancedView && courseFileId && (
+        <EnhancedCourseFileView
+          courseFileId={courseFileId}
+          courseName={structure.name}
+          courseCode={courseCode}
+          onClose={() => setShowEnhancedView(false)}
+        />
+      )}
+
+      {/* Comments Dialog for viewing/replying to HOD/Subject Head comments */}
+      {showCommentsDialog && courseFileId && (
+        <InlineCommentDialog
+          courseFileId={courseFileId}
+          isOpen={showCommentsDialog}
+          onClose={() => setShowCommentsDialog(false)}
+        />
+      )}
     </div>
   );
 }

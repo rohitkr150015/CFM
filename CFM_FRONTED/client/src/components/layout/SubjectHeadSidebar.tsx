@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/contexts/PermissionContext";
 import { useEffect, useState } from "react";
 import { authFetch } from "@/utils/authFetch";
 import {
@@ -10,14 +11,29 @@ import {
   MessageSquare,
   Settings,
   Mail,
+  Shield,
+  BarChart2,
+  User,
+  Plus,
+  UploadCloud,
 } from "lucide-react";
 
+// All possible sidebar items with permission requirements
 const subjectHeadItems = [
-  { icon: Home, label: "Dashboard", href: "/subject-head/dashboard" },
-  { icon: BookOpen, label: "Subjects", href: "/subject-head/subjects" },
-  { icon: FileText, label: "Reviews", href: "/subject-head/reviews" },
-  { icon: MessageSquare, label: "Comments", href: "/subject-head/comments" },
-  { icon: Settings, label: "Settings", href: "/subject-head/settings" },
+  // Base items
+  { icon: Home, label: "Dashboard", href: "/subject-head/dashboard", requiredPermission: null },
+  { icon: BookOpen, label: "Subjects", href: "/subject-head/subjects", requiredPermission: null },
+  { icon: FileText, label: "Reviews", href: "/subject-head/reviews", requiredPermission: null },
+  // Permission-gated items
+  { icon: Shield, label: "Approvals", href: "/subject-head/approvals", requiredPermission: "approve_file" },
+  { icon: FileText, label: "Course Files", href: "/subject-head/files", requiredPermission: "create_course_file" },
+  { icon: UploadCloud, label: "Templates", href: "/subject-head/templates", requiredPermission: "create_course_file" },
+  { icon: User, label: "Faculty List", href: "/subject-head/faculty-list", requiredPermission: "manage_dept" },
+  { icon: Plus, label: "Add Course", href: "/subject-head/add-course", requiredPermission: "manage_dept" },
+  { icon: BarChart2, label: "Reports", href: "/subject-head/reports", requiredPermission: "view_reports" },
+  // Always visible
+  { icon: MessageSquare, label: "Comments", href: "/subject-head/comments", requiredPermission: null },
+  { icon: Settings, label: "Settings", href: "/subject-head/settings", requiredPermission: null },
 ];
 
 interface ProfileData {
@@ -30,6 +46,7 @@ interface ProfileData {
 export function SubjectHeadSidebar() {
   const location = useLocation();
   const { user } = useAuth();
+  const { hasPermission } = usePermissions();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [helpEmail, setHelpEmail] = useState("cfmteam.help@gmail.com");
 
@@ -74,12 +91,18 @@ export function SubjectHeadSidebar() {
       : name.substring(0, 2).toUpperCase();
   };
 
+  // Filter items based on permissions
+  const filteredItems = subjectHeadItems.filter(item => {
+    if (!item.requiredPermission) return true;
+    return hasPermission(item.requiredPermission);
+  });
+
   return (
     <aside className="flex flex-col h-full w-64 border-r bg-sidebar">
       <div className="p-6 font-bold text-lg border-b">Subject Head</div>
 
       <nav className="flex-1 p-4 space-y-1">
-        {subjectHeadItems.map((item) => {
+        {filteredItems.map((item) => {
           const active = location.pathname === item.href;
 
           return (

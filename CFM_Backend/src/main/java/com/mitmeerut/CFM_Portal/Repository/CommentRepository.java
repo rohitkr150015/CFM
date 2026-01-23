@@ -8,6 +8,10 @@ import com.mitmeerut.CFM_Portal.Model.Comment;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByHeading_Id(Long headingId);
+
     List<Comment> findByCourseFile_Id(Long courseFileId);
+
     List<Comment> findByAuthor_Id(Long authorId);
+
+    List<Comment> findByDocument_Id(Long documentId);
 }
