@@ -23,9 +23,13 @@ public class SemesterController {
     @GetMapping
     public List<Semester> getSemesters(
             @RequestParam Long programId,
-            @RequestParam Long branchId
-    ) {
+            @RequestParam Long branchId) {
         return semesterService.getSemesters(programId, branchId);
+    }
+
+    @GetMapping("/all")
+    public List<Semester> getAllSemesters() {
+        return semesterService.getAllSemesters();
     }
 
     @PostMapping
@@ -44,4 +48,3 @@ public class SemesterController {
         return "Semester Deleted";
     }
 }
-

@@ -14,4 +14,6 @@ public interface BranchService {
     Branch updateBranch(Long id, Map<String, Object> body);
 
     void deleteBranch(Long id);
+
+    List<Branch> getAllBranches();
 }

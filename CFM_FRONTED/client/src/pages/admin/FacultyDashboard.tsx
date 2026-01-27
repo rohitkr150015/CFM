@@ -30,13 +30,6 @@ interface Department {
   name: string;
 }
 
-interface TeacherInfo {
-  id: number;
-  name: string;
-  departmentId?: number | null;
-  departmentName?: string | null;
-}
-
 interface FacultyUser {
   id: number;
   username: string;
@@ -44,7 +37,13 @@ interface FacultyUser {
   role: RoleType;
   isActive: boolean;
   createdAt: string;
-  teacher?: TeacherInfo | null;
+  // Flat fields from backend (not nested in a teacher object)
+  teacherId?: number | null;
+  name?: string | null;
+  departmentId?: number | null;
+  departmentName?: string | null;
+  designation?: string | null;
+  contactNumber?: string | null;
 }
 
 /* ================= COMPONENT ================= */
@@ -113,7 +112,7 @@ export default function FacultyDashboard() {
   /* ================= FILTER ================= */
 
   const filteredFaculty = faculty.filter(u => {
-    const name = u.teacher?.name || u.username;
+    const name = u.name || u.username;
     const matchesSearch =
       name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -122,8 +121,8 @@ export default function FacultyDashboard() {
       statusFilter === "all"
         ? true
         : statusFilter === "active"
-        ? u.isActive
-        : !u.isActive;
+          ? u.isActive
+          : !u.isActive;
 
     const matchesRole =
       roleFilter === "all" ? true : u.role === roleFilter;
@@ -136,10 +135,10 @@ export default function FacultyDashboard() {
   const openEditDialog = (user: FacultyUser) => {
     setEditingUser(user);
     setEditForm({
-      name: user.teacher?.name || user.username,
+      name: user.name || user.username,
       email: user.email,
       role: user.role,
-      departmentId: user.teacher?.departmentId || "",
+      departmentId: user.departmentId || "",
     });
   };
 
@@ -282,9 +281,9 @@ export default function FacultyDashboard() {
           {filteredFaculty.map(user => (
             <TableRow key={user.id}>
               <TableCell>#{user.id}</TableCell>
-              <TableCell>{user.teacher?.name || user.username}</TableCell>
+              <TableCell>{user.name || user.username}</TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell>{user.teacher?.departmentName || "-"}</TableCell>
+              <TableCell>{user.departmentName || "-"}</TableCell>
               <TableCell><Badge>{user.role}</Badge></TableCell>
               <TableCell>{user.isActive ? "Active" : "Inactive"}</TableCell>
               <TableCell>{user.createdAt?.split("T")[0]}</TableCell>
@@ -351,8 +350,6 @@ export default function FacultyDashboard() {
                 <SelectContent>
                   <SelectItem value="TEACHER">TEACHER</SelectItem>
                   <SelectItem value="HOD">HOD</SelectItem>
-                  <SelectItem value="SUBJECT_HEAD">SUBJECT_HEAD</SelectItem>
-                  <SelectItem value="ADMIN">ADMIN</SelectItem>
                 </SelectContent>
               </Select>
 

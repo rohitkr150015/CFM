@@ -14,5 +14,6 @@ public interface SemesterService {
     Semester updateSemester(Long id, Map<String, Object> body);
 
     void deleteSemester(Long id);
-}
 
+    List<Semester> getAllSemesters();
+}

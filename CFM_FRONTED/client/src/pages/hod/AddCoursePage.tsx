@@ -36,6 +36,10 @@ import { getSemesters } from "@/api/semesterApi";
 interface Program {
   id: number;
   name: string;
+  department?: {
+    id: number;
+    name: string;
+  };
 }
 
 interface Branch {
@@ -315,7 +319,7 @@ export default function HodCoursesPage() {
             <SelectContent>
               {programs.map(p => (
                 <SelectItem key={p.id} value={String(p.id)}>
-                  {p.name}
+                  {p.name} ({p.department?.name || "No Dept"})
                 </SelectItem>
               ))}
             </SelectContent>

@@ -22,6 +22,11 @@ public class BranchController {
         return branchService.getBranchesByProgram(programId);
     }
 
+    @GetMapping("/all")
+    public List<Branch> getAllBranches() {
+        return branchService.getAllBranches();
+    }
+
     @PostMapping
     public Branch createBranch(@RequestBody Map<String, Object> body) {
         return branchService.createBranch(body);
@@ -38,4 +43,3 @@ public class BranchController {
         return "Branch Deleted";
     }
 }
-

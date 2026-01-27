@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-
 @Service
 public class BranchServiceImpl implements BranchService {
 
@@ -73,6 +72,9 @@ public class BranchServiceImpl implements BranchService {
         branchRepo.deleteById(id);
     }
 
+    @Override
+    public List<Branch> getAllBranches() {
+        return branchRepo.findAll();
+    }
 
 }
-

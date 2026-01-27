@@ -23,10 +23,10 @@ import {
   getPrograms, createProgram, updateProgram, deleteProgram
 } from "@/api/programApi";
 import {
-  getBranches, createBranch, deleteBranch
+  getBranches, getAllBranches, createBranch, deleteBranch
 } from "@/api/branchApi";
 import {
-  getSemesters, createSemester, deleteSemester
+  getSemesters, getAllSemesters, createSemester, deleteSemester
 } from "@/api/semesterApi";
 
 export default function AdminProgramsPage() {
@@ -35,8 +35,11 @@ export default function AdminProgramsPage() {
   /* ================= STATE ================= */
   const [departments, setDepartments] = useState<any[]>([]);
   const [programs, setPrograms] = useState<any[]>([]);
-  const [branches, setBranches] = useState<any[]>([]);
-  const [semesters, setSemesters] = useState<any[]>([]);
+  // For table display (all data)
+  const [allBranches, setAllBranches] = useState<any[]>([]);
+  const [allSemesters, setAllSemesters] = useState<any[]>([]);
+  // For dialog filtered dropdowns
+  const [filteredBranches, setFilteredBranches] = useState<any[]>([]);
 
   const [programForm, setProgramForm] = useState<any>({
     id: null, name: "", code: "", duration_year: "", degree_type: "", department_id: ""
@@ -61,14 +64,16 @@ export default function AdminProgramsPage() {
   /* ================= LOADERS ================= */
   const loadDepartments = async () => setDepartments(toArray(await getDepartments()));
   const loadPrograms = async () => setPrograms(toArray(await getPrograms()));
-  const loadBranches = async (pid: number) =>
-    pid ? setBranches(toArray(await getBranches(pid))) : setBranches([]);
-  const loadSemesters = async (pid: number, bid: number) =>
-    pid && bid ? setSemesters(toArray(await getSemesters(pid, bid))) : setSemesters([]);
+  const loadAllBranches = async () => setAllBranches(toArray(await getAllBranches()));
+  const loadAllSemesters = async () => setAllSemesters(toArray(await getAllSemesters()));
+  const loadFilteredBranches = async (pid: number) =>
+    pid ? setFilteredBranches(toArray(await getBranches(pid))) : setFilteredBranches([]);
 
   useEffect(() => {
     loadDepartments();
     loadPrograms();
+    loadAllBranches();
+    loadAllSemesters();
   }, []);
 
   /* ================= PROGRAM ================= */
@@ -93,13 +98,13 @@ export default function AdminProgramsPage() {
     await createBranch(branchForm);
     toast({ title: "Branch Added" });
     setOpenBranch(false);
-    loadBranches(Number(branchForm.program_id));
+    loadAllBranches();
   };
 
   const removeBranch = async (id: number) => {
     await deleteBranch(id);
     toast({ title: "Branch Deleted" });
-    loadBranches(Number(branchForm.program_id));
+    loadAllBranches();
   };
 
   /* ================= SEMESTER ================= */
@@ -107,19 +112,13 @@ export default function AdminProgramsPage() {
     await createSemester(semesterForm);
     toast({ title: "Semester Added" });
     setOpenSemester(false);
-    loadSemesters(
-      Number(semesterForm.program_id),
-      Number(semesterForm.branch_id)
-    );
+    loadAllSemesters();
   };
 
   const removeSemester = async (id: number) => {
     await deleteSemester(id);
     toast({ title: "Semester Deleted" });
-    loadSemesters(
-      Number(semesterForm.program_id),
-      Number(semesterForm.branch_id)
-    );
+    loadAllSemesters();
   };
 
   /* ================= UI ================= */
@@ -182,6 +181,7 @@ export default function AdminProgramsPage() {
               <TableRow>
                 <TableHead>Code</TableHead>
                 <TableHead>Name</TableHead>
+                <TableHead>Department</TableHead>
                 <TableHead>Duration</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -191,6 +191,7 @@ export default function AdminProgramsPage() {
                 <TableRow key={p.id}>
                   <TableCell>{p.code}</TableCell>
                   <TableCell className="flex items-center gap-2"><BookOpen size={16} />{p.name}</TableCell>
+                  <TableCell>{p.department?.name || "-"}</TableCell>
                   <TableCell>{p.duration_year} Years</TableCell>
                   <TableCell className="text-right">
                     <Button size="icon" variant="ghost" onClick={() => {
@@ -226,12 +227,12 @@ export default function AdminProgramsPage() {
                 <Select value={branchForm.program_id}
                   onValueChange={(v) => {
                     setBranchForm({ ...branchForm, program_id: v });
-                    loadBranches(Number(v));
+                    loadFilteredBranches(Number(v));
                   }}>
                   <SelectTrigger><SelectValue placeholder="Select Program" /></SelectTrigger>
                   <SelectContent>
                     {programs.map(p => (
-                      <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+                      <SelectItem key={p.id} value={String(p.id)}>{p.name} ({p.department?.name || "No Dept"})</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -256,11 +257,11 @@ export default function AdminProgramsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {branches.map(b => (
+              {allBranches.map((b: any) => (
                 <TableRow key={b.id}>
                   <TableCell>{b.code}</TableCell>
                   <TableCell className="flex items-center gap-2"><GitBranch size={16} />{b.name}</TableCell>
-                  <TableCell>{b.program?.name || "-"}</TableCell>
+                  <TableCell>{b.program?.name || "-"} ({b.program?.department?.name || "-"})</TableCell>
                   <TableCell className="text-right">
                     <Button size="icon" variant="ghost" className="text-red-600"
                       onClick={() => removeBranch(b.id)}>
@@ -288,12 +289,12 @@ export default function AdminProgramsPage() {
                 <Select value={semesterForm.program_id}
                   onValueChange={(v) => {
                     setSemesterForm({ ...semesterForm, program_id: v });
-                    loadBranches(Number(v));
+                    loadFilteredBranches(Number(v));
                   }}>
                   <SelectTrigger><SelectValue placeholder="Select Program" /></SelectTrigger>
                   <SelectContent>
                     {programs.map(p => (
-                      <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+                      <SelectItem key={p.id} value={String(p.id)}>{p.name} ({p.department?.name || "No Dept"})</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -303,7 +304,7 @@ export default function AdminProgramsPage() {
                   onValueChange={(v) => setSemesterForm({ ...semesterForm, branch_id: v })}>
                   <SelectTrigger><SelectValue placeholder="Select Branch" /></SelectTrigger>
                   <SelectContent>
-                    {branches.map(b => (
+                    {filteredBranches.map((b: any) => (
                       <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -331,11 +332,11 @@ export default function AdminProgramsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {semesters.map(s => (
+              {allSemesters.map((s: any) => (
                 <TableRow key={s.id}>
                   <TableCell>{s.semester_number}</TableCell>
                   <TableCell className="flex items-center gap-2"><Calendar size={16} />{s.label}</TableCell>
-                  <TableCell>{s.program?.name || "-"}</TableCell>
+                  <TableCell>{s.program?.name || "-"} ({s.program?.department?.name || "-"})</TableCell>
                   <TableCell className="text-right">
                     <Button size="icon" variant="ghost" className="text-red-600"
                       onClick={() => removeSemester(s.id)}>

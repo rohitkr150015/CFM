@@ -17,15 +17,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByEmail(String email);
 
     List<User> findByRoleAndIsActive(userRole role, Boolean isActive);
-    
-    //User findByTeacher(Teacher teacher);
 
-	List<User> findByIsActiveTrue();
-	
-	
-	List<User> findByRole(User.userRole role);
-	
-	Optional<User> findByTeacher(Teacher teacher);
+    // User findByTeacher(Teacher teacher);
 
+    List<User> findByIsActiveTrue();
+
+    List<User> findByRole(User.userRole role);
+
+    Optional<User> findByTeacher(Teacher teacher);
+
+    Optional<User> findByTeacher_Id(Long teacherId);
 
 }

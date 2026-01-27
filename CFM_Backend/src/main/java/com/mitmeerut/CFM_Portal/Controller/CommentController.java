@@ -5,10 +5,13 @@ import com.mitmeerut.CFM_Portal.Repository.CommentRepository;
 import com.mitmeerut.CFM_Portal.Repository.CourseFileRepository;
 import com.mitmeerut.CFM_Portal.Repository.DocumentRepository;
 import com.mitmeerut.CFM_Portal.Repository.HeadingRepository;
+import com.mitmeerut.CFM_Portal.Repository.NotificationRepository;
+import com.mitmeerut.CFM_Portal.Repository.UserRepository;
 import com.mitmeerut.CFM_Portal.security.user.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -22,15 +25,22 @@ public class CommentController {
     private final CourseFileRepository courseFileRepository;
     private final HeadingRepository headingRepository;
     private final DocumentRepository documentRepository;
+    private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public CommentController(CommentRepository commentRepository,
             CourseFileRepository courseFileRepository,
             HeadingRepository headingRepository,
-            DocumentRepository documentRepository) {
+            DocumentRepository documentRepository,
+            NotificationRepository notificationRepository,
+            UserRepository userRepository) {
         this.commentRepository = commentRepository;
         this.courseFileRepository = courseFileRepository;
         this.headingRepository = headingRepository;
         this.documentRepository = documentRepository;
+        this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
     }
 
     // ==================== GET COMMENTS ====================
@@ -174,6 +184,24 @@ public class CommentController {
         }
 
         Comment saved = commentRepository.save(comment);
+
+        // Create notification for course file owner if comment is on their file
+        if (request.courseFileId != null) {
+            CourseFile courseFile = courseFileRepository.findById(request.courseFileId).orElse(null);
+            if (courseFile != null && courseFile.getCreatedBy() != null) {
+                // Don't notify if commenting on own file
+                if (!courseFile.getCreatedBy().getId().equals(teacher.getId())) {
+                    createNotificationForComment(courseFile.getCreatedBy(), teacher, courseFile, saved);
+                }
+
+                // If Subject Head is commenting on a document, auto-update status to RETURNED
+                if (request.documentId != null && isSubjectHead(teacher)) {
+                    courseFile.setStatus("RETURNED_BY_SUBJECT_HEAD");
+                    courseFileRepository.save(courseFile);
+                }
+            }
+        }
+
         return ResponseEntity.ok(commentToDto(saved));
     }
 
@@ -205,6 +233,11 @@ public class CommentController {
         reply.setIsReceived(false);
 
         Comment saved = commentRepository.save(reply);
+
+        // Create notification for parent comment author
+        if (parentComment.getAuthor() != null && !parentComment.getAuthor().getId().equals(teacher.getId())) {
+            createNotificationForReply(parentComment.getAuthor(), teacher, parentComment);
+        }
 
         Map<String, Object> result = new HashMap<>();
         result.put("id", saved.getId());
@@ -344,6 +377,74 @@ public class CommentController {
             return (parts[0].charAt(0) + "" + parts[parts.length - 1].charAt(0)).toUpperCase();
         }
         return name.substring(0, Math.min(2, name.length())).toUpperCase();
+    }
+
+    // Helper method to check if teacher is a Subject Head for any course
+    private boolean isSubjectHead(Teacher teacher) {
+        // Check if this teacher has any CourseTeacher records with isSubjectHead = true
+        // This is a simplified check - you may want to make it more specific
+        return teacher.getDesignation() != null &&
+                teacher.getDesignation().toLowerCase().contains("subject head");
+    }
+
+    // Create notification when someone comments on a course file
+    private void createNotificationForComment(Teacher recipient, Teacher commenter, CourseFile courseFile,
+            Comment comment) {
+        try {
+            Optional<User> userOpt = userRepository.findByTeacher_Id(recipient.getId());
+            if (userOpt.isPresent()) {
+                Notification notification = new Notification();
+                notification.setUser(userOpt.get());
+                notification.setType("COMMENT_ADDED");
+
+                Map<String, Object> payload = new HashMap<>();
+                payload.put("message", commenter.getName() + " commented on your course file");
+                payload.put("courseFileId", courseFile.getId());
+                payload.put("courseCode", courseFile.getCourse().getCode());
+                payload.put("courseTitle", courseFile.getCourse().getTitle());
+                payload.put("commenterName", commenter.getName());
+                payload.put("commentText", comment.getText());
+
+                notification.setPayload(objectMapper.writeValueAsString(payload));
+                notification.setIsRead(false);
+                notification.setCreatedAt(LocalDateTime.now());
+
+                notificationRepository.save(notification);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the comment creation
+            System.err.println("Error creating notification: " + e.getMessage());
+        }
+    }
+
+    // Create notification when someone replies to a comment
+    private void createNotificationForReply(Teacher recipient, Teacher replier, Comment parentComment) {
+        try {
+            Optional<User> userOpt = userRepository.findByTeacher_Id(recipient.getId());
+            if (userOpt.isPresent()) {
+                Notification notification = new Notification();
+                notification.setUser(userOpt.get());
+                notification.setType("COMMENT_REPLY");
+
+                Map<String, Object> payload = new HashMap<>();
+                payload.put("message", replier.getName() + " replied to your comment");
+                if (parentComment.getCourseFile() != null) {
+                    payload.put("courseFileId", parentComment.getCourseFile().getId());
+                    payload.put("courseCode", parentComment.getCourseFile().getCourse().getCode());
+                }
+                payload.put("replierName", replier.getName());
+                payload.put("originalComment", parentComment.getText());
+
+                notification.setPayload(objectMapper.writeValueAsString(payload));
+                notification.setIsRead(false);
+                notification.setCreatedAt(LocalDateTime.now());
+
+                notificationRepository.save(notification);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the reply creation
+            System.err.println("Error creating notification: " + e.getMessage());
+        }
     }
 
     // ==================== REQUEST DTOs ====================

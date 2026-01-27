@@ -11,6 +11,15 @@ export const getBranches = async (programId: number) => {
   return Array.isArray(data) ? data : [];
 };
 
+export const getAllBranches = async () => {
+  const res = await authFetch(`${API}/all`);
+
+  if (!res.ok) return [];
+
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+};
+
 export const createBranch = (data: any) =>
   authFetch(API, {
     method: "POST",

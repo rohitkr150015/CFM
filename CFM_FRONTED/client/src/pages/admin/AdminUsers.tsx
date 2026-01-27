@@ -39,8 +39,7 @@ export default function AdminUsersPage() {
 
   const [users, setUsers] = useState<BackendUser[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] =
-    useState<"all" | "active" | "inactive">("all");
+
 
   const [isAddOpen, setIsAddOpen] = useState(false);
 
@@ -53,7 +52,7 @@ export default function AdminUsersPage() {
 
   const loadUsers = async () => {
     try {
-      const res = await authFetch("/api/admin/teachers");
+      const res = await authFetch("/api/admin/pending-teachers");
 
       if (!res.ok) {
         toast({
@@ -95,8 +94,9 @@ export default function AdminUsersPage() {
         return;
       }
 
-      toast({ title: "User Approved" });
-      setUsers(prev => prev.map(u => u.id === userId ? { ...u, isActive: true } : u));
+      toast({ title: "User Approved", description: "User moved to Faculty" });
+      // Remove from this list after approval
+      setUsers(prev => prev.filter(u => u.id !== userId));
     } catch {
       toast({
         title: "Server Error",
@@ -113,14 +113,7 @@ export default function AdminUsersPage() {
       u.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus =
-      statusFilter === "all"
-        ? true
-        : statusFilter === "active"
-          ? u.isActive
-          : !u.isActive;
-
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
   /* ================= UI ================= */
@@ -131,7 +124,7 @@ export default function AdminUsersPage() {
         <div>
           <h1 className="text-3xl font-bold">User Management</h1>
           <p className="text-muted-foreground">
-            Manage system access and approvals
+            Pending user approvals
           </p>
         </div>
 
@@ -164,16 +157,7 @@ export default function AdminUsersPage() {
           />
         </div>
 
-        <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-          </SelectContent>
-        </Select>
+
       </div>
 
       {/* TABLE */}
@@ -194,7 +178,7 @@ export default function AdminUsersPage() {
           {filteredUsers.length === 0 && (
             <TableRow>
               <TableCell colSpan={7} className="text-center text-muted-foreground">
-                No users found
+                No pending users found
               </TableCell>
             </TableRow>
           )}

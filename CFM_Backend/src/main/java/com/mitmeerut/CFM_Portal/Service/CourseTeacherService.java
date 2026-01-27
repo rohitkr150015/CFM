@@ -11,6 +11,9 @@ import com.mitmeerut.CFM_Portal.security.user.CustomUserDetails;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class CourseTeacherService {
 
@@ -65,5 +68,18 @@ public class CourseTeacherService {
         ct.setIsSubjectHead(dto.getIsSubjectHead() != null ? dto.getIsSubjectHead() : false);
 
         courseTeacherRepo.save(ct);
+    }
+
+    public List<CourseTeacher> getAllAssignmentsForDepartment(CustomUserDetails user) {
+        Teacher hod = user.getTeacher();
+        Long departmentId = hod.getDepartment().getId();
+
+        // Get all assignments and filter by department
+        return courseTeacherRepo.findAll().stream()
+                .filter(ct -> {
+                    Long courseDeptId = courseRepo.findDepartmentIdByProgramId(ct.getCourse().getProgramId());
+                    return courseDeptId != null && courseDeptId.equals(departmentId);
+                })
+                .collect(Collectors.toList());
     }
 }

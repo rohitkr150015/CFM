@@ -13,6 +13,15 @@ export const getSemesters = async (programId: number, branchId: number) => {
   return Array.isArray(data) ? data : [];
 };
 
+export const getAllSemesters = async () => {
+  const res = await authFetch(`${API}/all`);
+
+  if (!res.ok) return [];
+
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+};
+
 export const createSemester = (data: any) =>
   authFetch(API, {
     method: "POST",

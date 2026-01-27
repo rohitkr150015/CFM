@@ -87,5 +87,9 @@ public class SemesterServiceImpl implements SemesterService {
     public void deleteSemester(Long id) {
         semesterRepo.deleteById(id);
     }
-}
 
+    @Override
+    public List<Semester> getAllSemesters() {
+        return semesterRepo.findAll();
+    }
+}

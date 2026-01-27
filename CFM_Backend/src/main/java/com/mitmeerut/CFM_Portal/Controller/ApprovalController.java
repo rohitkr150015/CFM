@@ -112,19 +112,21 @@ public class ApprovalController {
 
     /**
      * Get pending approvals for Subject Head
-     * Returns course files with status SUBMITTED from the Subject Head's department
+     * Returns course files with status SUBMITTED where the user is the assigned
+     * Subject Head
      */
     @GetMapping("/subject-head/pending-approvals")
     public ResponseEntity<List<Map<String, Object>>> getSubjectHeadPendingApprovals(
             @AuthenticationPrincipal CustomUserDetails user) {
 
         Teacher teacher = user.getTeacher();
-        if (teacher == null || teacher.getDepartment() == null) {
+        if (teacher == null) {
             return ResponseEntity.ok(Collections.emptyList());
         }
 
-        Long departmentId = teacher.getDepartment().getId();
-        List<CourseFile> pendingFiles = courseFileRepository.findByDepartmentIdAndStatus(departmentId, "SUBMITTED");
+        // Use new query that filters by specific Subject Head assignment for each
+        // course
+        List<CourseFile> pendingFiles = courseFileRepository.findPendingForSubjectHead(teacher.getId());
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (CourseFile cf : pendingFiles) {
