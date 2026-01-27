@@ -36,55 +36,51 @@ public class HodCourseAssignController {
             @AuthenticationPrincipal CustomUserDetails user) {
         List<CourseTeacher> assignments = courseTeacherService.getAllAssignmentsForDepartment(user);
 
-        // Group by course to show all teachers and identify Subject Head
-        Map<Long, List<CourseTeacher>> groupedByCourse = assignments.stream()
-                .collect(Collectors.groupingBy(ct -> ct.getCourse().getId()));
-
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        for (Map.Entry<Long, List<CourseTeacher>> entry : groupedByCourse.entrySet()) {
-            List<CourseTeacher> courseAssignments = entry.getValue();
-            if (!courseAssignments.isEmpty()) {
-                CourseTeacher first = courseAssignments.get(0);
-
-                Map<String, Object> item = new HashMap<>();
-                item.put("courseId", first.getCourse().getId());
-                item.put("courseCode", first.getCourse().getCode());
-                item.put("courseTitle", first.getCourse().getTitle());
-
-                // Get all teachers for this course
-                List<Map<String, Object>> teachers = courseAssignments.stream()
-                        .map(ct -> {
-                            Map<String, Object> teacherInfo = new HashMap<>();
-                            teacherInfo.put("teacherId", ct.getTeacher().getId());
-                            teacherInfo.put("teacherName", ct.getTeacher().getName());
-                            teacherInfo.put("section", ct.getSection());
-                            teacherInfo.put("academicYear", ct.getAcademicYear());
-                            teacherInfo.put("isSubjectHead", ct.getIsSubjectHead());
-                            return teacherInfo;
-                        })
-                        .collect(Collectors.toList());
-
-                item.put("teachers", teachers);
-
-                // Find Subject Head
-                Optional<CourseTeacher> subjectHead = courseAssignments.stream()
-                        .filter(ct -> ct.getIsSubjectHead() != null && ct.getIsSubjectHead())
-                        .findFirst();
-
-                if (subjectHead.isPresent()) {
-                    item.put("subjectHeadId", subjectHead.get().getTeacher().getId());
-                    item.put("subjectHeadName", subjectHead.get().getTeacher().getName());
-                } else {
-                    item.put("subjectHeadId", null);
-                    item.put("subjectHeadName", "Not Assigned");
-                }
-
-                result.add(item);
-            }
-        }
+        // Return flat list of individual assignments for easier edit/delete
+        List<Map<String, Object>> result = assignments.stream()
+                .map(ct -> {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("id", ct.getId());
+                    item.put("courseId", ct.getCourse().getId());
+                    item.put("courseCode", ct.getCourse().getCode());
+                    item.put("courseTitle", ct.getCourse().getTitle());
+                    item.put("teacherId", ct.getTeacher().getId());
+                    item.put("teacherName", ct.getTeacher().getName());
+                    item.put("section", ct.getSection());
+                    item.put("academicYear", ct.getAcademicYear());
+                    item.put("isSubjectHead", ct.getIsSubjectHead() != null ? ct.getIsSubjectHead() : false);
+                    return item;
+                })
+                .collect(Collectors.toList());
 
         return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/course-assignments/{id}")
+    @PreAuthorize("hasRole('HOD')")
+    public ResponseEntity<?> updateAssignment(
+            @PathVariable Long id,
+            @RequestBody AssignCourseDTO dto,
+            @AuthenticationPrincipal CustomUserDetails user) {
+        try {
+            courseTeacherService.updateAssignment(id, dto, user);
+            return ResponseEntity.ok(Map.of("message", "Assignment updated successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/course-assignments/{id}")
+    @PreAuthorize("hasRole('HOD')")
+    public ResponseEntity<?> deleteAssignment(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails user) {
+        try {
+            courseTeacherService.deleteAssignment(id, user);
+            return ResponseEntity.ok(Map.of("message", "Assignment deleted successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
 }

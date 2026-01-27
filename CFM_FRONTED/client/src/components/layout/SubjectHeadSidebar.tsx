@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/contexts/PermissionContext";
@@ -16,7 +16,10 @@ import {
   User,
   Plus,
   UploadCloud,
+  ArrowRightLeft,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SidebarHeader } from "./SidebarHeader";
 
 // All possible sidebar items with permission requirements
 const subjectHeadItems = [
@@ -27,7 +30,6 @@ const subjectHeadItems = [
   // Permission-gated items
   { icon: Shield, label: "Approvals", href: "/subject-head/approvals", requiredPermission: "approve_file" },
   { icon: FileText, label: "Course Files", href: "/subject-head/files", requiredPermission: "create_course_file" },
-  { icon: UploadCloud, label: "Templates", href: "/subject-head/templates", requiredPermission: "create_course_file" },
   { icon: User, label: "Faculty List", href: "/subject-head/faculty-list", requiredPermission: "manage_dept" },
   { icon: Plus, label: "Add Course", href: "/subject-head/add-course", requiredPermission: "manage_dept" },
   { icon: BarChart2, label: "Reports", href: "/subject-head/reports", requiredPermission: "view_reports" },
@@ -45,7 +47,8 @@ interface ProfileData {
 
 export function SubjectHeadSidebar() {
   const location = useLocation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, switchRole } = useAuth();
   const { hasPermission } = usePermissions();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [helpEmail, setHelpEmail] = useState("cfmteam.help@gmail.com");
@@ -91,6 +94,11 @@ export function SubjectHeadSidebar() {
       : name.substring(0, 2).toUpperCase();
   };
 
+  const handleSwitchToTeacher = () => {
+    switchRole("TEACHER");
+    navigate("/teacher/dashboard");
+  };
+
   // Filter items based on permissions
   const filteredItems = subjectHeadItems.filter(item => {
     if (!item.requiredPermission) return true;
@@ -99,7 +107,25 @@ export function SubjectHeadSidebar() {
 
   return (
     <aside className="flex flex-col h-full w-64 border-r bg-sidebar">
-      <div className="p-6 font-bold text-lg border-b">Subject Head</div>
+      <SidebarHeader
+        title="CourseFlow"
+        subtitle={`${profile?.departmentName || ""} (Subject Head)`}
+      />
+
+      {/* Switch to Teacher Button */}
+      {user?.role === "TEACHER" && (
+        <div className="px-4 pb-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200 hover:from-blue-100 hover:to-cyan-100 text-blue-700"
+            onClick={handleSwitchToTeacher}
+          >
+            <ArrowRightLeft className="h-4 w-4" />
+            Switch to Teacher
+          </Button>
+        </div>
+      )}
 
       <nav className="flex-1 p-4 space-y-1">
         {filteredItems.map((item) => {

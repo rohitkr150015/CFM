@@ -121,12 +121,18 @@ public class ApprovalController {
 
         Teacher teacher = user.getTeacher();
         if (teacher == null) {
+            System.out.println("DEBUG: Teacher is null");
             return ResponseEntity.ok(Collections.emptyList());
         }
+
+        System.out.println("DEBUG: Subject Head pending approvals for teacher ID: " + teacher.getId() + ", name: "
+                + teacher.getName());
 
         // Use new query that filters by specific Subject Head assignment for each
         // course
         List<CourseFile> pendingFiles = courseFileRepository.findPendingForSubjectHead(teacher.getId());
+
+        System.out.println("DEBUG: Found " + pendingFiles.size() + " pending files");
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (CourseFile cf : pendingFiles) {

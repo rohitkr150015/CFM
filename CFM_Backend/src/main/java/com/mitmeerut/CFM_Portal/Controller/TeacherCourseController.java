@@ -26,16 +26,14 @@ public class TeacherCourseController {
     @Autowired
     public TeacherCourseController(
             CourseTeacherRepository courseTeacherRepo,
-            TemplateRepository templateRepo
-    ) {
+            TemplateRepository templateRepo) {
         this.courseTeacherRepo = courseTeacherRepo;
         this.templateRepo = templateRepo;
     }
 
     @GetMapping("/my-courses")
     public List<Map<String, Object>> getMyCourses(
-            @AuthenticationPrincipal CustomUserDetails user
-    ) {
+            @AuthenticationPrincipal CustomUserDetails user) {
         Teacher teacher = user.getTeacher();
 
         return courseTeacherRepo.findByTeacherId(teacher.getId())
@@ -54,9 +52,40 @@ public class TeacherCourseController {
 
     @GetMapping("/templates")
     public List<Template> getTemplates(
-            @AuthenticationPrincipal CustomUserDetails user
-    ) {
+            @AuthenticationPrincipal CustomUserDetails user) {
         Long deptId = user.getTeacher().getDepartment().getId();
         return templateRepo.findByDepartmentId(deptId);
+    }
+
+    /**
+     * Check if the current teacher is assigned as Subject Head for any course
+     */
+    @GetMapping("/is-subject-head")
+    public Map<String, Object> isSubjectHead(
+            @AuthenticationPrincipal CustomUserDetails user) {
+        Teacher teacher = user.getTeacher();
+        boolean isSubjectHead = courseTeacherRepo.existsByTeacherIdAndIsSubjectHeadTrue(teacher.getId());
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("isSubjectHead", isSubjectHead);
+
+        if (isSubjectHead) {
+            // Get the courses they are subject head for
+            List<Map<String, Object>> courses = courseTeacherRepo.findSubjectHeadAssignmentsByTeacherId(teacher.getId())
+                    .stream()
+                    .map(ct -> {
+                        Map<String, Object> courseInfo = new HashMap<>();
+                        courseInfo.put("courseId", ct.getCourse().getId());
+                        courseInfo.put("courseCode", ct.getCourse().getCode());
+                        courseInfo.put("courseTitle", ct.getCourse().getTitle());
+                        courseInfo.put("academicYear", ct.getAcademicYear());
+                        courseInfo.put("section", ct.getSection());
+                        return courseInfo;
+                    })
+                    .collect(Collectors.toList());
+            result.put("subjectHeadCourses", courses);
+        }
+
+        return result;
     }
 }

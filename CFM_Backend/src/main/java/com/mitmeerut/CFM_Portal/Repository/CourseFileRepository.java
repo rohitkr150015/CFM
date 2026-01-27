@@ -31,14 +31,11 @@ public interface CourseFileRepository extends JpaRepository<CourseFile, Long> {
                         @Param("statuses") List<String> statuses);
 
         // Find course files pending approval for a specific Subject Head
-        // Only returns files where the user is assigned as Subject Head for that
-        // specific course
+        // Returns files where the user is assigned as Subject Head for that course
         @Query("SELECT DISTINCT cf FROM CourseFile cf " +
                         "JOIN CourseTeacher ct ON cf.course.id = ct.course.id " +
                         "WHERE ct.teacher.id = :subjectHeadId " +
                         "AND ct.isSubjectHead = true " +
-                        "AND cf.status = 'SUBMITTED' " +
-                        "AND cf.academicYear = ct.academicYear " +
-                        "AND cf.section = ct.section")
+                        "AND cf.status = 'SUBMITTED'")
         List<CourseFile> findPendingForSubjectHead(@Param("subjectHeadId") Long subjectHeadId);
 }

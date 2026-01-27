@@ -244,20 +244,8 @@ export default function HodDashboardPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled>
-            HOD
-          </Button>
-
           <Button
-            variant="secondary"
-            size="sm"
-            onClick={goToTeacherDashboard}
-          >
-            Switch to Teacher
-          </Button>
-
-          <Button
-            className="bg-blue-600 hover:bg-blue-700 ml-2"
+            className="bg-blue-600 hover:bg-blue-700"
             onClick={() => navigate("/hod/approvals")}
           >
             <Shield className="h-4 w-4 mr-2" />

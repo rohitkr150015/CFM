@@ -1,13 +1,14 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/contexts/PermissionContext";
 import { useEffect, useState } from "react";
 import { authFetch } from "@/utils/authFetch";
-import { Mail } from "lucide-react";
+import { Mail, ArrowRightLeft } from "lucide-react";
 import { hodSidebarItems } from "@/lib/dummy-data";
 import { SidebarHeader } from "./SidebarHeader";
 import { SidebarItem } from "./SidebarItem";
+import { Button } from "@/components/ui/button";
 
 interface ProfileData {
   name: string;
@@ -18,7 +19,8 @@ interface ProfileData {
 
 export default function HodSidebar() {
   const location = useLocation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, switchRole } = useAuth();
   const { hasPermission, loading: permissionsLoading } = usePermissions();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [helpEmail, setHelpEmail] = useState("cfmteam.help@gmail.com");
@@ -64,6 +66,11 @@ export default function HodSidebar() {
       : name.substring(0, 2).toUpperCase();
   };
 
+  const handleSwitchToTeacher = () => {
+    switchRole("TEACHER");
+    navigate("/teacher/dashboard");
+  };
+
   // Filter sidebar items based on permissions
   const filteredItems = hodSidebarItems.filter(item => {
     if (!item.requiredPermission) return true;
@@ -76,6 +83,19 @@ export default function HodSidebar() {
         title="CourseFlow"
         subtitle={`${profile?.departmentName || "HOD"} (HOD)`}
       />
+
+      {/* Switch to Teacher Button */}
+      <div className="px-4 pb-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full justify-start gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200 hover:from-blue-100 hover:to-cyan-100 text-blue-700"
+          onClick={handleSwitchToTeacher}
+        >
+          <ArrowRightLeft className="h-4 w-4" />
+          Switch to Teacher
+        </Button>
+      </div>
 
       <nav className="flex-1 p-4 space-y-1">
         {filteredItems.map((item) => (

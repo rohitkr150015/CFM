@@ -206,7 +206,7 @@ export const hodSidebarItems = [
   { icon: User, label: "Faculty-List", href: "/hod/department-faculty", requiredPermission: "manage_dept" },
   { icon: Plus, label: "ADD Course", href: "/hod/department-management", requiredPermission: "manage_dept" },
   { icon: FileText, label: "Assign-Course", href: "/hod/courses", requiredPermission: "manage_dept" },
-  { icon: FileText, label: "Create Template", href: "/hod/templates", requiredPermission: "create_course_file" },
+  { icon: FileText, label: "Create Template", href: "/hod/templates", requiredPermission: null },
   { icon: Shield, label: "Approve Files", href: "/hod/approvals", requiredPermission: "approve_file" },
   { icon: MessageSquare, label: "Comments", href: "/hod/comments", requiredPermission: null },
   { icon: User, label: "Faculty Performance", href: "/hod/teachers", requiredPermission: "view_reports" },

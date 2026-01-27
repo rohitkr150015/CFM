@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { X, FileText } from "lucide-react";
+import { X, FileText, ExternalLink, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { authFetch } from "@/utils/authFetch";
+import { useToast } from "@/hooks/use-toast";
 
 interface FileItem {
     id: string;
@@ -34,6 +35,7 @@ export function EnhancedCourseFileView({
     onClose,
     useReviewApi = false,
 }: EnhancedCourseFileViewProps) {
+    const { toast } = useToast();
     const [headings, setHeadings] = useState<HeadingItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeSection, setActiveSection] = useState<string>("");
@@ -84,20 +86,40 @@ export function EnhancedCourseFileView({
 
     const handleViewFile = async (fileId: string, fileName: string) => {
         try {
-            const res = await authFetch(`/api/teacher/documents/${fileId}/download-url`);
+            const res = await authFetch(`/api/teacher/documents/view/${fileId}`);
             if (res.ok) {
-                const data = await res.json();
-                window.open(data.url, "_blank");
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                window.open(url, "_blank");
             } else {
-                const downloadRes = await authFetch(`/api/teacher/documents/download/${fileId}`);
-                if (downloadRes.ok) {
-                    const blob = await downloadRes.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    window.open(url, "_blank");
-                }
+                throw new Error("Failed to view file");
             }
         } catch (error) {
             console.error("Failed to get file URL:", error);
+            toast({ title: "Error", description: "Failed to open file", variant: "destructive" });
+        }
+    };
+
+    const handleDownloadFile = async (fileId: string, fileName: string) => {
+        try {
+            const res = await authFetch(`/api/teacher/documents/download/${fileId}`);
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                toast({ title: "Success", description: `Downloaded ${fileName}` });
+            } else {
+                throw new Error("Download failed");
+            }
+        } catch (error) {
+            console.error("Failed to download file:", error);
+            toast({ title: "Error", description: "Failed to download file", variant: "destructive" });
         }
     };
 
@@ -109,40 +131,42 @@ export function EnhancedCourseFileView({
         }
     };
 
-    // Render document links exactly like coursefile.html
+    // Render document links with Open and Download buttons
     const renderDocumentLinks = (files: FileItem[]) => {
         if (!files || files.length === 0) return null;
 
         return (
-            <>
+            <div className="flex flex-wrap gap-2 my-3">
                 {files.map((file) => (
-                    <a
+                    <div
                         key={file.id}
-                        onClick={() => handleViewFile(file.id, file.fileName)}
-                        className="pdf-link cursor-pointer inline-block mr-2 mb-2"
-                        style={{
-                            fontSize: '18px',
-                            color: '#2980b9',
-                            textDecoration: 'none',
-                            padding: '10px 15px',
-                            border: '2px solid #2980b9',
-                            borderRadius: '5px',
-                            display: 'inline-block',
-                            transition: '0.3s',
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#2980b9';
-                            e.currentTarget.style.color = '#fff';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                            e.currentTarget.style.color = '#2980b9';
-                        }}
+                        className="flex items-center gap-2 p-3 border-2 border-[#2980b9] rounded-lg bg-white hover:bg-blue-50 transition-colors"
                     >
-                        {file.fileName}
-                    </a>
+                        <FileText className="h-5 w-5 text-[#2980b9] flex-shrink-0" />
+                        <span className="text-[#2c3e50] font-medium truncate max-w-[200px]">
+                            {file.fileName}
+                        </span>
+                        <div className="flex gap-1 ml-2">
+                            <button
+                                onClick={() => handleViewFile(file.id, file.fileName)}
+                                className="flex items-center gap-1 px-2 py-1 text-sm bg-[#2980b9] text-white rounded hover:bg-[#1f6aa5] transition-colors"
+                                title="Open in new tab"
+                            >
+                                <ExternalLink className="h-4 w-4" />
+                                Open
+                            </button>
+                            <button
+                                onClick={() => handleDownloadFile(file.id, file.fileName)}
+                                className="flex items-center gap-1 px-2 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                                title="Download file"
+                            >
+                                <Download className="h-4 w-4" />
+                                Download
+                            </button>
+                        </div>
+                    </div>
                 ))}
-            </>
+            </div>
         );
     };
 

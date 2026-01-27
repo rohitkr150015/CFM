@@ -82,4 +82,66 @@ public class CourseTeacherService {
                 })
                 .collect(Collectors.toList());
     }
+
+    public void updateAssignment(Long id, AssignCourseDTO dto, CustomUserDetails user) {
+        Teacher hod = user.getTeacher();
+
+        CourseTeacher ct = courseTeacherRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+
+        // Verify the assignment belongs to HOD's department
+        Long courseDeptId = courseRepo.findDepartmentIdByProgramId(ct.getCourse().getProgramId());
+        if (!courseDeptId.equals(hod.getDepartment().getId())) {
+            throw new RuntimeException("Assignment not in your department");
+        }
+
+        // Update fields
+        if (dto.getTeacherId() != null) {
+            Teacher teacher = teacherRepo.findById(dto.getTeacherId())
+                    .orElseThrow(() -> new RuntimeException("Teacher not found"));
+            if (!teacher.getDepartment().getId().equals(hod.getDepartment().getId())) {
+                throw new RuntimeException("Teacher not in your department");
+            }
+            ct.setTeacher(teacher);
+        }
+
+        if (dto.getCourseId() != null) {
+            Course course = courseRepo.findById(dto.getCourseId())
+                    .orElseThrow(() -> new RuntimeException("Course not found"));
+            Long newCourseDeptId = courseRepo.findDepartmentIdByProgramId(course.getProgramId());
+            if (!newCourseDeptId.equals(hod.getDepartment().getId())) {
+                throw new RuntimeException("Course not in your department");
+            }
+            ct.setCourse(course);
+        }
+
+        if (dto.getAcademicYear() != null) {
+            ct.setAcademicYear(dto.getAcademicYear());
+        }
+
+        if (dto.getSection() != null) {
+            ct.setSection(dto.getSection());
+        }
+
+        if (dto.getIsSubjectHead() != null) {
+            ct.setIsSubjectHead(dto.getIsSubjectHead());
+        }
+
+        courseTeacherRepo.save(ct);
+    }
+
+    public void deleteAssignment(Long id, CustomUserDetails user) {
+        Teacher hod = user.getTeacher();
+
+        CourseTeacher ct = courseTeacherRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+
+        // Verify the assignment belongs to HOD's department
+        Long courseDeptId = courseRepo.findDepartmentIdByProgramId(ct.getCourse().getProgramId());
+        if (!courseDeptId.equals(hod.getDepartment().getId())) {
+            throw new RuntimeException("Assignment not in your department");
+        }
+
+        courseTeacherRepo.delete(ct);
+    }
 }

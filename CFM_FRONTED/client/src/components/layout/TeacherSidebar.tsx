@@ -1,13 +1,14 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/contexts/PermissionContext";
 import { useEffect, useState } from "react";
 import { authFetch } from "@/utils/authFetch";
-import { Mail } from "lucide-react";
+import { Mail, ArrowRightLeft } from "lucide-react";
 import { sidebarItems } from "@/lib/dummy-data";
 import { SidebarHeader } from "./SidebarHeader";
 import { SidebarItem } from "./SidebarItem";
+import { Button } from "@/components/ui/button";
 
 interface ProfileData {
   name: string;
@@ -18,7 +19,8 @@ interface ProfileData {
 
 export default function TeacherSidebar() {
   const location = useLocation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, isSubjectHead, switchRole } = useAuth();
   const { hasPermission, loading: permissionsLoading } = usePermissions();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [helpEmail, setHelpEmail] = useState("cfmteam.help@gmail.com");
@@ -64,11 +66,24 @@ export default function TeacherSidebar() {
       : name.substring(0, 2).toUpperCase();
   };
 
+  const handleSwitchToSubjectHead = () => {
+    switchRole("SUBJECT_HEAD");
+    navigate("/subject-head/dashboard");
+  };
+
+  const handleSwitchToHOD = () => {
+    switchRole("HOD");
+    navigate("/hod/dashboard");
+  };
+
   // Filter sidebar items based on permissions
   const filteredItems = sidebarItems.filter(item => {
     if (!item.requiredPermission) return true;
     return hasPermission(item.requiredPermission);
   });
+
+  // Check if user is HOD viewing as Teacher
+  const isHodViewingAsTeacher = user?.role === "HOD";
 
   return (
     <aside className="flex flex-col h-full w-64 border-r bg-sidebar">
@@ -76,6 +91,35 @@ export default function TeacherSidebar() {
         title="CourseFlow"
         subtitle={profile?.departmentName || "Teacher"}
       />
+
+      {/* Switch Buttons */}
+      <div className="px-4 pb-2 space-y-2">
+        {/* Switch to HOD Button (for HOD viewing as Teacher) */}
+        {isHodViewingAsTeacher && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start gap-2 bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200 hover:from-emerald-100 hover:to-teal-100 text-emerald-700"
+            onClick={handleSwitchToHOD}
+          >
+            <ArrowRightLeft className="h-4 w-4" />
+            Switch to HOD
+          </Button>
+        )}
+
+        {/* Switch to Subject Head Button (for Teacher who is Subject Head) */}
+        {isSubjectHead && !isHodViewingAsTeacher && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start gap-2 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200 hover:from-purple-100 hover:to-indigo-100 text-purple-700"
+            onClick={handleSwitchToSubjectHead}
+          >
+            <ArrowRightLeft className="h-4 w-4" />
+            Switch to Subject Head
+          </Button>
+        )}
+      </div>
 
       <nav className="flex-1 p-4 space-y-1">
         {filteredItems.map((item) => (

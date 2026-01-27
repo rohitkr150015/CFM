@@ -5,51 +5,74 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Plus, Search, Edit2, Trash2, MoreHorizontal } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, MoreHorizontal, BookOpen } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { authFetch } from "@/utils/authFetch";
 import { useAuth } from "@/contexts/AuthContext";
+import { Badge } from "@/components/ui/badge";
 
 interface Course {
   id: number;
   code: string;
   title: string;
-  semesterId: number;
-  programId: number;
-  branchId: number;
-  filesCount?: number; // Backend might not send this yet
+  semesterId?: number;
+  programId?: number;
+  branchId?: number;
+  filesCount?: number;
+  // Fields from teacher's my-courses endpoint
+  courseId?: number;
+  academicYear?: string;
+  section?: string;
 }
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, activeRole } = useAuth();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Check if user can manage courses (HOD or ADMIN)
   const canManageCourses = user?.role === "HOD" || user?.role === "ADMIN";
 
+  // Check if viewing as teacher (TEACHER role or HOD acting as teacher)
+  const isTeacherView = user?.role === "TEACHER" || (user?.role === "HOD" && activeRole === "TEACHER");
+
   // Form State
   const [formData, setFormData] = useState({
     code: "",
     title: "",
-    semester: "1", // defaulting to ID 1 for now
+    semester: "1",
     instructor: ""
   });
 
   useEffect(() => {
     fetchCourses();
-  }, []);
+  }, [activeRole]);
 
   const fetchCourses = async () => {
     try {
-      const res = await authFetch("/api/hod/courses"); // Shared endpoint
+      // Use different endpoints based on role and active view
+      const endpoint = isTeacherView ? "/api/teacher/my-courses" : "/api/hod/courses";
+      const res = await authFetch(endpoint);
       if (!res.ok) throw new Error("Failed to fetch courses");
       const data = await res.json();
-      setCourses(Array.isArray(data) ? data : []);
+
+      // Normalize the data structure
+      const normalizedCourses = Array.isArray(data) ? data.map((c: any) => ({
+        id: c.courseId || c.id,
+        code: c.code,
+        title: c.title,
+        semesterId: c.semesterId,
+        programId: c.programId,
+        academicYear: c.academicYear,
+        section: c.section,
+        filesCount: c.filesCount || 0
+      })) : [];
+
+      setCourses(normalizedCourses);
     } catch (error) {
       console.error(error);
       toast({
@@ -71,8 +94,6 @@ export default function CoursesPage() {
     setLoading(true);
 
     try {
-      // Construct payload expected by backend
-      // defaulting structural IDs to 1 as requested for "make real" quick fix
       const payload = {
         code: formData.code,
         title: formData.title,
@@ -101,7 +122,7 @@ export default function CoursesPage() {
 
       setIsAddOpen(false);
       setFormData({ code: "", title: "", semester: "1", instructor: "" });
-      fetchCourses(); // Refresh list
+      fetchCourses();
 
     } catch (err: any) {
       toast({
@@ -117,8 +138,17 @@ export default function CoursesPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold tracking-tight">Courses</h1>
-        {canManageCourses && (
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {isTeacherView ? "My Courses" : "Courses"}
+          </h1>
+          {isTeacherView && (
+            <p className="text-muted-foreground text-sm mt-1">
+              Courses assigned to you by your department
+            </p>
+          )}
+        </div>
+        {canManageCourses && !isTeacherView && (
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger asChild>
               <Button className="w-full sm:w-auto">
@@ -152,7 +182,6 @@ export default function CoursesPage() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="semester">Semester (ID)</Label>
-                  {/* Simplified to Input for now, assuming ID */}
                   <Input
                     id="semester"
                     placeholder="e.g. 1"
@@ -162,7 +191,6 @@ export default function CoursesPage() {
                     onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
                   />
                 </div>
-                {/* Instructor field removed from payload as backend handles it via JWT or doesn't store it in Course table directly */}
 
                 <DialogFooter>
                   <Button type="submit" disabled={loading}>
@@ -193,29 +221,54 @@ export default function CoursesPage() {
             <TableRow>
               <TableHead>Code</TableHead>
               <TableHead>Title</TableHead>
-              <TableHead>Semester ID</TableHead>
-              <TableHead>Program ID</TableHead>
+              {isTeacherView ? (
+                <>
+                  <TableHead>Section</TableHead>
+                  <TableHead>Academic Year</TableHead>
+                </>
+              ) : (
+                <>
+                  <TableHead>Semester ID</TableHead>
+                  <TableHead>Program ID</TableHead>
+                </>
+              )}
               <TableHead className="text-right">Files</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              {canManageCourses && !isTeacherView && (
+                <TableHead className="text-right">Actions</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredCourses.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                  No courses found. Add one to get started.
+                <TableCell colSpan={isTeacherView ? 5 : 6} className="text-center text-muted-foreground py-8">
+                  <BookOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  {isTeacherView
+                    ? "No courses assigned to you yet. Please contact your HOD."
+                    : "No courses found. Add one to get started."}
                 </TableCell>
               </TableRow>
             )}
             {filteredCourses.map((course) => (
-              <TableRow key={course.id}>
-                <TableCell>{course.code}</TableCell>
+              <TableRow key={`${course.id}-${course.section}-${course.academicYear}`}>
+                <TableCell className="font-medium">{course.code}</TableCell>
                 <TableCell>{course.title}</TableCell>
-                <TableCell>{course.semesterId}</TableCell>
-                <TableCell>{course.programId}</TableCell>
+                {isTeacherView ? (
+                  <>
+                    <TableCell>
+                      <Badge variant="secondary">{course.section || "N/A"}</Badge>
+                    </TableCell>
+                    <TableCell>{course.academicYear || "N/A"}</TableCell>
+                  </>
+                ) : (
+                  <>
+                    <TableCell>{course.semesterId}</TableCell>
+                    <TableCell>{course.programId}</TableCell>
+                  </>
+                )}
                 <TableCell className="text-right">{course.filesCount || 0}</TableCell>
-                <TableCell className="text-right">
-                  {canManageCourses && (
+                {canManageCourses && !isTeacherView && (
+                  <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
@@ -232,8 +285,8 @@ export default function CoursesPage() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  )}
-                </TableCell>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
